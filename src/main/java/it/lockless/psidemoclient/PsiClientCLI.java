@@ -9,12 +9,11 @@ import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
 import psi.dto.PsiAlgorithmParameterDTO;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +31,9 @@ public class PsiClientCLI implements Runnable{
 
     @Option(names = { "-url", "--serverUrl" }, paramLabel = "URL", required = true, description = "URL of the server offering the PSI server API")
     String serverBaseUrl;
+
+    @Option(names = { "-o", "--output" }, paramLabel = "FILE", required = false, defaultValue = "out.txt", description = "Output file containing the result of the PSI")
+    File outputFile;
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new it.lockless.psidemoclient.PsiClientCLI()).execute(args);
@@ -52,7 +54,15 @@ public class PsiClientCLI implements Runnable{
         System.out.println(clientDataset);
     }
 
-    private void validateServerBaseUrl(){
+    private void writeOnOutputFile(Set<String> set) {
+        try {
+            Files.write(Paths.get(outputFile.getPath()), set);
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing the output file");
+        }
+    }
+
+        private void validateServerBaseUrl(){
         // Remove any trailing slash in the url
         while(serverBaseUrl.endsWith("/"))
             serverBaseUrl = serverBaseUrl.substring(0, serverBaseUrl.length()-1);
@@ -68,6 +78,7 @@ public class PsiClientCLI implements Runnable{
     public void run() {
         validateServerBaseUrl();
         loadDatasetFromFile();
+        writeOnOutputFile(clientDataset);
 
         // TODO: we should switch to dynamic algorithm parameters
         PsiAlgorithmParameterDTO psiAlgorithmParameterDTO = new PsiAlgorithmParameterDTO();
@@ -98,7 +109,8 @@ public class PsiClientCLI implements Runnable{
 
         // Compute PSI
         Set<String> psiResult = psiClient.computePsi();
+        writeOnOutputFile(psiResult);
 
-        System.out.println("PSI computed correctly. Intersection size = "+psiResult.size());
+        System.out.println("PSI computed correctly. Intersection size = "+psiResult.size()+". The result of the PSI ");
     }
 }
