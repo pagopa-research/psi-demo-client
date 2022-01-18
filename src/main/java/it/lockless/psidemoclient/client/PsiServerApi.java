@@ -1,39 +1,68 @@
 package it.lockless.psidemoclient.client;
 
+import it.lockless.psidemoclient.dto.PsiAlgorithmParameterListDTO;
+import it.lockless.psidemoclient.dto.PsiDatasetMapDTO;
+import it.lockless.psidemoclient.dto.PsiServerDatasetPageDTO;
+import it.lockless.psidemoclient.dto.PsiSessionWrapperDTO;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.client.RestTemplate;
 import psi.dto.PsiAlgorithmParameterDTO;
-import psi.dto.PsiSessionDTO;
-import psi.dto.ServerDatasetPageDTO;
-
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
 
 public class PsiServerApi {
 
-    private final URL psiServerBaseUrl;
+    private final String psiServerBaseUrl;
 
-    public PsiServerApi(URL psiServerBaseUrl) {
+    private final RestTemplate restTemplate;
+
+    public PsiServerApi(String psiServerBaseUrl){
         this.psiServerBaseUrl = psiServerBaseUrl;
+        this.restTemplate = new RestTemplate();
     }
 
-    public List<PsiAlgorithmParameterDTO> getPsiParameter(){
-        // TODO: should implement API call
-        return null;
+    public PsiAlgorithmParameterListDTO getPsiParameter(){
+        String url = psiServerBaseUrl+"/psi/parameter";
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);
+        return restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                requestEntity,
+                PsiAlgorithmParameterListDTO.class).getBody();
     }
 
-    public PsiSessionDTO postPsi(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO){
-        // TODO: should implement API call
-        return null;
+    public PsiSessionWrapperDTO postPsi(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO){
+        String url = psiServerBaseUrl + "/psi";
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<PsiAlgorithmParameterDTO> requestEntity = new HttpEntity<>(psiAlgorithmParameterDTO, requestHeaders);
+        return restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                requestEntity,
+                PsiSessionWrapperDTO.class).getBody();
     }
 
-    public Map<Long, String> postPsiClientSet(Map<Long, String> clientDatasetMap){
-        // TODO: should implement API call
-        return null;
+    public PsiDatasetMapDTO postPsiClientSet(Long sessionId, PsiDatasetMapDTO psiDatasetMapDTO){
+        String url = psiServerBaseUrl + "/psi/"+sessionId+"/clientSet";
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<PsiDatasetMapDTO> requestEntity = new HttpEntity<>(psiDatasetMapDTO, requestHeaders);
+        return restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                requestEntity,
+                PsiDatasetMapDTO.class).getBody();
     }
 
-    public ServerDatasetPageDTO getPsiServerSetPage(int page, int size){
-        // TODO: should implement API call
-        return null;
+    public PsiServerDatasetPageDTO getPsiServerSetPage(Long sessionId, int page, int size){
+        String url = psiServerBaseUrl + "/psi/"+sessionId+"/serverSet?page="+page+"&size="+size;
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);
+        return restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                requestEntity,
+                PsiServerDatasetPageDTO.class).getBody();
     }
 
 }
