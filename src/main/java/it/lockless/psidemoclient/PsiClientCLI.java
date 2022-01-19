@@ -12,7 +12,6 @@ import picocli.CommandLine.*;
 import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
-import psi.client.PsiClientKeyDescriptionFactory;
 import psi.dto.PsiAlgorithmDTO;
 import psi.dto.PsiAlgorithmParameterDTO;
 
@@ -61,7 +60,8 @@ public class PsiClientCLI implements Runnable{
                 clientDataset.add(line);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Cannot parse the input dataset");
+            System.err.println("Cannot parse the input dataset");
+            System.exit(1);
         }
         System.out.println(clientDataset.size()+ " entries loaded from dataset file");
     }
@@ -92,7 +92,7 @@ public class PsiClientCLI implements Runnable{
         try {
             inputStream = new FileInputStream(keyDescriptionFile);
         } catch (FileNotFoundException e) {
-            System.out.println("Cannot find the input key description file" +keyDescriptionFile.getPath());
+            System.err.println("Cannot find the input key description file" +keyDescriptionFile.getPath());
             System.exit(1);
         }
         Yaml yaml = new Yaml(new Constructor(PsiClientKeyDescription.class));
@@ -105,7 +105,7 @@ public class PsiClientCLI implements Runnable{
         try {
             Files.write(outputYamlFile.toPath(), yamlString.getBytes());
         } catch (IOException e) {
-            System.out.println("Cannot write the output key description file "+outputYamlFile.getPath());
+            System.err.println("Cannot write the output key description file "+outputYamlFile.getPath());
             System.exit(1);
         }
     }
