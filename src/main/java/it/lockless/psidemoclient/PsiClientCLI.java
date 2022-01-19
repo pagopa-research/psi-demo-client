@@ -52,64 +52,6 @@ public class PsiClientCLI implements Runnable{
         System.exit(exitCode);
     }
 
-    private void loadDatasetFromFile(){
-        clientDataset = new HashSet<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(inputDataset))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                clientDataset.add(line);
-            }
-        } catch (IOException e) {
-            System.err.println("Cannot parse the input dataset");
-            System.exit(1);
-        }
-        System.out.println(clientDataset.size()+ " entries loaded from dataset file");
-    }
-
-    private void writeOnOutputFile(Set<String> set) {
-        try {
-            Files.write(Paths.get(outputFile.getPath()), set);
-        } catch (IOException e) {
-            throw new RuntimeException("Error writing the output file");
-        }
-    }
-
-    private void validateServerBaseUrl(){
-        // Remove any trailing slash in the url
-        while(serverBaseUrl.endsWith("/"))
-            serverBaseUrl = serverBaseUrl.substring(0, serverBaseUrl.length()-1);
-        try {
-            new URL(serverBaseUrl);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("The input serverBaseUrl is not a valid URL");
-        }
-    }
-
-    private PsiClientKeyDescription readKeyDescriptionFromFile(File keyDescriptionFile){
-        if(keyDescriptionFile == null)
-            return null;
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(keyDescriptionFile);
-        } catch (FileNotFoundException e) {
-            System.err.println("Cannot find the input key description file" +keyDescriptionFile.getPath());
-            System.exit(1);
-        }
-        Yaml yaml = new Yaml(new Constructor(PsiClientKeyDescription.class));
-        return yaml.load(inputStream);
-    }
-
-    private void writeKeyDescriptionToFile(PsiClientKeyDescription psiClientKeyDescription, File outputYamlFile){
-        Yaml yaml = new Yaml();
-        String yamlString = yaml.dumpAs(psiClientKeyDescription, Tag.MAP, DumperOptions.FlowStyle.BLOCK);
-        try {
-            Files.write(outputYamlFile.toPath(), yamlString.getBytes());
-        } catch (IOException e) {
-            System.err.println("Cannot write the output key description file "+outputYamlFile.getPath());
-            System.exit(1);
-        }
-    }
-
     @Override
     public void run() {
         validateServerBaseUrl();
@@ -151,11 +93,73 @@ public class PsiClientCLI implements Runnable{
 
         // Compute PSI and write the result on the output file
         Set<String> psiResult = psiClient.computePsi();
-        writeOnOutputFile(psiResult);
+        writeResultFile(psiResult);
 
         // Save key description used during by the execution in the outputKeyDescriptionFile
         writeKeyDescriptionToFile(psiClient.getClientKeyDescription(), outputKeyDescriptionFile);
 
         System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is  = " + psiResult.size());
+    }
+
+    //////////////////////////////////////////////////////////////
+    // HELPER FUNCTIONS
+    //////////////////////////////////////////////////////////////
+
+    private void loadDatasetFromFile(){
+        clientDataset = new HashSet<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(inputDataset))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                clientDataset.add(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Cannot parse the input dataset");
+            System.exit(1);
+        }
+        System.out.println(clientDataset.size()+ " entries loaded from dataset file");
+    }
+
+    private void writeResultFile(Set<String> set) {
+        try {
+            Files.write(Paths.get(outputFile.getPath()), set);
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing the output file");
+        }
+    }
+
+    private void validateServerBaseUrl(){
+        // Remove any trailing slashes in the url
+        while(serverBaseUrl.endsWith("/"))
+            serverBaseUrl = serverBaseUrl.substring(0, serverBaseUrl.length()-1);
+        try {
+            new URL(serverBaseUrl);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("The input serverBaseUrl is not a valid URL");
+        }
+    }
+
+    private PsiClientKeyDescription readKeyDescriptionFromFile(File keyDescriptionFile){
+        if(keyDescriptionFile == null)
+            return null;
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(keyDescriptionFile);
+        } catch (FileNotFoundException e) {
+            System.err.println("Cannot find the input key description file" +keyDescriptionFile.getPath());
+            System.exit(1);
+        }
+        Yaml yaml = new Yaml(new Constructor(PsiClientKeyDescription.class));
+        return yaml.load(inputStream);
+    }
+
+    private void writeKeyDescriptionToFile(PsiClientKeyDescription psiClientKeyDescription, File outputYamlFile){
+        Yaml yaml = new Yaml();
+        String yamlString = yaml.dumpAs(psiClientKeyDescription, Tag.MAP, DumperOptions.FlowStyle.BLOCK);
+        try {
+            Files.write(outputYamlFile.toPath(), yamlString.getBytes());
+        } catch (IOException e) {
+            System.err.println("Cannot write the output key description file "+outputYamlFile.getPath());
+            System.exit(1);
+        }
     }
 }
