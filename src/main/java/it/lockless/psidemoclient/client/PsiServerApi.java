@@ -1,9 +1,6 @@
 package it.lockless.psidemoclient.client;
 
-import it.lockless.psidemoclient.dto.PsiAlgorithmParameterListDTO;
-import it.lockless.psidemoclient.dto.PsiDatasetMapDTO;
-import it.lockless.psidemoclient.dto.PsiServerDatasetPageDTO;
-import it.lockless.psidemoclient.dto.PsiSessionWrapperDTO;
+import it.lockless.psidemoclient.dto.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,7 +20,7 @@ public class PsiServerApi {
     }
 
     public PsiAlgorithmParameterListDTO getPsiParameter(){
-        String url = psiServerBaseUrl+"/psi/parameter";
+        String url = psiServerBaseUrl+"/psi/parameters";
         HttpHeaders requestHeaders = new HttpHeaders();
         HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);
         try{
@@ -33,7 +30,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiAlgorithmParameterListDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the PSI server. Please verify that the server url " + this.psiServerBaseUrl + " is correct");
+            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
             return null;
         }
@@ -50,7 +47,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiSessionWrapperDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the PSI server. Please verify that the input server url " + this.psiServerBaseUrl + " is correct");
+            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
             return null;
         }
@@ -67,7 +64,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiDatasetMapDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the PSI server. Please verify that the server url " + this.psiServerBaseUrl + " is correct");
+            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
             return null;
         }
@@ -84,7 +81,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiServerDatasetPageDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the PSI server. Please verify that the server url " + this.psiServerBaseUrl + " is correct");
+            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
             return null;
         }

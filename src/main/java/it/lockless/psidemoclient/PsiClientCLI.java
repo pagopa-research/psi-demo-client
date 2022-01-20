@@ -1,9 +1,7 @@
 package it.lockless.psidemoclient;
 import it.lockless.psidemoclient.cache.RedisPsiCacheProvider;
 import it.lockless.psidemoclient.client.PsiServerApi;
-import it.lockless.psidemoclient.dto.PsiDatasetMapDTO;
-import it.lockless.psidemoclient.dto.PsiServerDatasetPageDTO;
-import it.lockless.psidemoclient.dto.PsiSessionWrapperDTO;
+import it.lockless.psidemoclient.dto.*;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -22,6 +20,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,22 +29,31 @@ public class PsiClientCLI implements Runnable{
 
     Set<String> clientDataset;
 
+    @CommandLine.Parameters(description = "Should either be list or compute.")
+    private String command;
+
     @Spec
     Model.CommandSpec spec;
-
-    @Option(names = { "-i", "--inputDataset" }, paramLabel = "FILE", required = true, description = "File containing the client dataset. Each line of the file is interpreted as an entry of the dataset.")
-    private File inputDataset;
 
     @Option(names = { "-url", "--serverUrl" }, paramLabel = "URL", required = true, description = "URL of the server offering the PSI server API")
     private String serverBaseUrl;
 
+    @Option(names = { "-i", "--inputDataset" }, paramLabel = "FILE", description = "File containing the client dataset. Each line of the file is interpreted as an entry of the dataset. Required if command is compute")
+    private File inputDataset;
+
     @Option(names = { "-o", "--output" }, paramLabel = "FILE", defaultValue = "out.txt", description = "Output file containing the result of the PSI")
     private File outputFile;
 
-    @Option(names = { "-k", "--keyDescription" }, paramLabel = "FILE", description = "Yaml file containing the key description for the specific algorithm")
+    @Option(names = { "-a", "--algorithm" }, paramLabel = "String", defaultValue = "BS", description = "Algorithm used for the PSI computation. Should be complaint with the values provided by the list command")
+    private String algorithm;
+
+    @Option(names = { "-k", "--keysize" }, paramLabel = "Integer", defaultValue = "2048", description = "Key size used for the PSI computation. Should be complaint with the values provided by the list command")
+    private int keySize;
+
+    @Option(names = { "-key", "--keyDescription" }, paramLabel = "FILE", description = "Yaml file containing the key description for the specific algorithm")
     private File keyDescriptionFile;
 
-    @Option(names = { "-outk", "--outputKeyDescription" }, paramLabel = "FILE", defaultValue = "output-key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
+    @Option(names = { "-outkey", "--outputKeyDescription" }, paramLabel = "FILE", defaultValue = "output-key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
     private File outputKeyDescriptionFile;
 
     @Option(names = { "-c", "--cache" }, paramLabel = "Boolean", description = "Defines whether the client-side PSI calculation should use the redis cache. If not modified with --cacheUrl and --cachePort, attempts to connect to redis on localhost:6379")
@@ -64,13 +72,36 @@ public class PsiClientCLI implements Runnable{
 
     @Override
     public void run() {
+        switch (command) {
+            case "list":
+                runList();
+                break;
+
+            case "compute":
+                runCompute();
+                break;
+
+            default:
+                throw new CommandLine.ParameterException(spec.commandLine(), "The first parameter should either be list or compute");
+        }
+    }
+
+    public void runCompute() {
         validateServerBaseUrl();
         loadDatasetFromFile();
 
-        // TODO: we should switch to dynamic algorithm parameters
         PsiAlgorithmParameterDTO psiAlgorithmParameterDTO = new PsiAlgorithmParameterDTO();
-        psiAlgorithmParameterDTO.setAlgorithm(PsiAlgorithmDTO.BS);
-        psiAlgorithmParameterDTO.setKeySize(2048);
+        switch(algorithm){
+            case "BS":
+                psiAlgorithmParameterDTO.setAlgorithm(PsiAlgorithmDTO.BS);
+                break;
+            case "DH":
+                psiAlgorithmParameterDTO.setAlgorithm(PsiAlgorithmDTO.DH);
+                break;
+            default:
+                throw new CommandLine.ParameterException(spec.commandLine(), "The input algorithm parameter is not supported");
+        }
+        psiAlgorithmParameterDTO.setKeySize(keySize);
 
         // Init the API client that calls the PSI server by passing the server base URL
         PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
@@ -78,11 +109,15 @@ public class PsiClientCLI implements Runnable{
         // Create the session by calling POST /psi passing the selected psiAlgorithmParameterDTO as body
         PsiSessionWrapperDTO psiSessionWrapperDTO = psiServerApi.postPsi(psiAlgorithmParameterDTO);
 
-        // When creating the psiClient, if a key description file is passed as parameter, we it for keys.
+        // When creating the psiClient, if a key description file is passed as parameter, we use it for keys.
         // Similarly, if enabled, set up and validate the cache
         PsiClient psiClient;
-        if(keyDescriptionFile == null)
-            psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
+
+        if(keyDescriptionFile == null){
+            if(cache)
+                psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), new RedisPsiCacheProvider(cacheUrl, cachePort));
+            else psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
+        }
         else{
             if(cache)
                 psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), readKeyDescriptionFromFile(keyDescriptionFile), new RedisPsiCacheProvider(cacheUrl, cachePort));
@@ -115,11 +150,29 @@ public class PsiClientCLI implements Runnable{
         System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is  = " + psiResult.size());
     }
 
+    public void runList(){
+        validateServerBaseUrl();
+        PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
+
+        List<PsiAlgorithmParameterDTO> psiAlgorithmParameterDTOList = psiServerApi.getPsiParameter().getContent();
+        if(psiAlgorithmParameterDTOList.size() == 0){
+            System.out.println("The server does not support any PSI algorithm");
+        }else{
+            System.out.println("Supported algorithm-keySize pairs:");
+            for(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO : psiAlgorithmParameterDTOList){
+                System.out.println(psiAlgorithmParameterDTO.getAlgorithm().toString()+"-"+psiAlgorithmParameterDTO.getKeySize());
+            }
+        }
+    }
+
     //////////////////////////////////////////////////////////////
     // HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////
 
     private void loadDatasetFromFile(){
+        if(inputDataset == null)
+            throw new CommandLine.ParameterException(spec.commandLine(), "The option --inputDataset (-i) is required for the command compute");
+
         clientDataset = new HashSet<>();
         try (BufferedReader br = new BufferedReader(new FileReader(inputDataset))) {
             String line;

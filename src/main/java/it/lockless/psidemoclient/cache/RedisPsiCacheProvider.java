@@ -2,7 +2,6 @@ package it.lockless.psidemoclient.cache;
 
 import psi.cache.PsiCacheProvider;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisSocketFactory;
 
 import java.util.Optional;
 

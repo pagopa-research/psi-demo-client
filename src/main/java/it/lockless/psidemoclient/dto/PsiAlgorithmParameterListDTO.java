@@ -12,6 +12,9 @@ public class PsiAlgorithmParameterListDTO {
         this.content = content;
     }
 
+    public PsiAlgorithmParameterListDTO() {
+    }
+
     public List<PsiAlgorithmParameterDTO> getContent() {
         return content;
     }
