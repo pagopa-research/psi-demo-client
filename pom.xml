@@ -44,6 +44,12 @@
         <artifactId>snakeyaml</artifactId>
         <version>1.30</version>
     </dependency>
+
+    <dependency>
+        <groupId>redis.clients</groupId>
+        <artifactId>jedis</artifactId>
+        <version>4.0.1</version>
+    </dependency>
 </dependencies>
 
 <properties>

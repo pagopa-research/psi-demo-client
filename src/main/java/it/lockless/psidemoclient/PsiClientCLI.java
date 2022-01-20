@@ -1,4 +1,5 @@
 package it.lockless.psidemoclient;
+import it.lockless.psidemoclient.cache.RedisPsiCacheProvider;
 import it.lockless.psidemoclient.client.PsiServerApi;
 import it.lockless.psidemoclient.dto.PsiDatasetMapDTO;
 import it.lockless.psidemoclient.dto.PsiServerDatasetPageDTO;
@@ -33,19 +34,28 @@ public class PsiClientCLI implements Runnable{
     Model.CommandSpec spec;
 
     @Option(names = { "-i", "--inputDataset" }, paramLabel = "FILE", required = true, description = "File containing the client dataset. Each line of the file is interpreted as an entry of the dataset.")
-    File inputDataset;
+    private File inputDataset;
 
     @Option(names = { "-url", "--serverUrl" }, paramLabel = "URL", required = true, description = "URL of the server offering the PSI server API")
-    String serverBaseUrl;
+    private String serverBaseUrl;
 
-    @Option(names = { "-o", "--output" }, paramLabel = "FILE", required = false, defaultValue = "out.txt", description = "Output file containing the result of the PSI")
-    File outputFile;
+    @Option(names = { "-o", "--output" }, paramLabel = "FILE", defaultValue = "out.txt", description = "Output file containing the result of the PSI")
+    private File outputFile;
 
-    @Option(names = { "-k", "--keyDescription" }, paramLabel = "FILE", required = false, description = "Yaml file containing the key description for the specific algorithm")
-    File keyDescriptionFile;
+    @Option(names = { "-k", "--keyDescription" }, paramLabel = "FILE", description = "Yaml file containing the key description for the specific algorithm")
+    private File keyDescriptionFile;
 
-    @Option(names = { "-outk", "--outputKeyDescription" }, paramLabel = "FILE", required = false, defaultValue = "output-key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
-    File outputKeyDescriptionFile;
+    @Option(names = { "-outk", "--outputKeyDescription" }, paramLabel = "FILE", defaultValue = "output-key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
+    private File outputKeyDescriptionFile;
+
+    @Option(names = { "-c", "--cache" }, paramLabel = "Boolean", description = "Defines whether the client-side PSI calculation should use the redis cache. If not modified with --cacheUrl and --cachePort, attempts to connect to redis on localhost:6379")
+    private boolean cache;
+
+    @Option(names = { "-curl", "--cacheUrl" }, paramLabel = "URL", defaultValue = "localhost", description = "Defines the url of the redis cache. Default value is localhost")
+    private String cacheUrl;
+
+    @Option(names = { "-cport", "--cachePort" }, paramLabel = "Integer", defaultValue = "6379", description = "Defines the port of the redis cache. Default value is 6379")
+    private Integer cachePort;
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new it.lockless.psidemoclient.PsiClientCLI()).execute(args);
@@ -66,16 +76,20 @@ public class PsiClientCLI implements Runnable{
         PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
 
         // Create the session by calling POST /psi passing the selected psiAlgorithmParameterDTO as body
-        PsiSessionWrapperDTO psiSessionWrapperDTO= psiServerApi.postPsi(psiAlgorithmParameterDTO);
+        PsiSessionWrapperDTO psiSessionWrapperDTO = psiServerApi.postPsi(psiAlgorithmParameterDTO);
 
         // When creating the psiClient, if a key description file is passed as parameter, we it for keys.
         // Similarly, if enabled, set up and validate the cache
-        // TODO: add cache logic
         PsiClient psiClient;
         if(keyDescriptionFile == null)
             psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
-        else
-            psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), readKeyDescriptionFromFile(keyDescriptionFile));
+        else{
+            if(cache)
+                psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), readKeyDescriptionFromFile(keyDescriptionFile), new RedisPsiCacheProvider(cacheUrl, cachePort));
+            else{
+                psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), readKeyDescriptionFromFile(keyDescriptionFile));
+            }
+        }
 
         // Send the encrypted client dataset and load the returned entries (double encrypted client dataset)
         Map<Long, String> encryptedMap = psiClient.loadAndEncryptClientDataset(clientDataset);
