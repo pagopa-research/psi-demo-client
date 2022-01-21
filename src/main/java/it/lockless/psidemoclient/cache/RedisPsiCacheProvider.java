@@ -26,7 +26,7 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
      *
      * @param key   key corresponding to the value to be retrieved
      *
-     * @return an Optional containing the cached value if present, Optional.empty() otherwise
+     * @return an Optional containing the the cached value if present, Optional.empty() otherwise
      */
     @Override
     public Optional<String> get(String key) {
@@ -45,13 +45,13 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
      * @param key       key corresponding to the value to be stored.
      * @param value     value to be stored.
      */
+
     @Override
     public void put(String key, String value) {
         Jedis jedis = this.jedisPool.getResource();
-        long response = jedisPool.getResource().setnx(key, value);
+        long response = jedis.setnx(key, value);
         this.jedisPool.returnResource(jedis);
         if (response == 0)
             throw new RedisKeyAlreadyWrittenException();
     }
-
 }
