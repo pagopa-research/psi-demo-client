@@ -4,6 +4,7 @@ import it.lockless.psidemoclient.dto.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import psi.dto.PsiAlgorithmParameterDTO;
@@ -39,6 +40,7 @@ public class PsiServerApi {
     public PsiSessionWrapperDTO postPsi(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO){
         String url = psiServerBaseUrl + "/psi";
         HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<PsiAlgorithmParameterDTO> requestEntity = new HttpEntity<>(psiAlgorithmParameterDTO, requestHeaders);
         try{
             return restTemplate.exchange(

@@ -13,6 +13,7 @@ import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
 import psi.dto.PsiAlgorithmDTO;
 import psi.dto.PsiAlgorithmParameterDTO;
+import psi.utils.StatisticsFactory;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -148,6 +149,10 @@ public class PsiClientCLI implements Runnable{
         writeKeyDescriptionToFile(psiClient.getClientKeyDescription(), outputKeyDescriptionFile);
 
         System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is  = " + psiResult.size());
+
+        System.out.println("Printing execution statistics");
+        for(StatisticsFactory statisticsFactory : psiClient.getStatisticList())
+            System.out.println(statisticsFactory);
     }
 
     public void runList(){

@@ -14,13 +14,13 @@ import java.util.Optional;
 
 public class RedisPsiCacheProvider implements PsiCacheProvider {
 
-    //private final Jedis jedis;
     private final JedisPool jedisPool;
 
     public RedisPsiCacheProvider(String host, int port) {
         this.jedisPool = new JedisPool(host, port);
         this.jedisPool.getResource().ping();
     }
+
     /**
      * Retrieve the value linked to a given key.
      *

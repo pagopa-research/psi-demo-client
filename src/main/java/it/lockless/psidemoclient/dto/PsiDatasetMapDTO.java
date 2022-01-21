@@ -6,6 +6,9 @@ public class PsiDatasetMapDTO {
 
     private Map<Long, String> content;
 
+    public PsiDatasetMapDTO() {
+    }
+
     public PsiDatasetMapDTO(Map<Long, String> content) {
         this.content = content;
     }
