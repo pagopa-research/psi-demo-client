@@ -1,7 +1,5 @@
 package it.lockless.psidemoclient.dto;
 
-import psi.dto.PsiAlgorithmParameterDTO;
-
 import java.util.List;
 
 public class PsiAlgorithmParameterListDTO {

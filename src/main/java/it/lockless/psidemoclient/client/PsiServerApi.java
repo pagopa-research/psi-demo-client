@@ -1,13 +1,10 @@
 package it.lockless.psidemoclient.client;
 
 import it.lockless.psidemoclient.dto.*;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import psi.dto.PsiAlgorithmParameterDTO;
 
 public class PsiServerApi {
 
@@ -37,7 +34,7 @@ public class PsiServerApi {
         }
     }
 
-    public PsiSessionWrapperDTO postPsi(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO){
+    public PsiClientSessionDTO postPsi(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO){
         String url = psiServerBaseUrl + "/psi";
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -47,7 +44,7 @@ public class PsiServerApi {
                     url,
                     HttpMethod.POST,
                     requestEntity,
-                    PsiSessionWrapperDTO.class).getBody();
+                    PsiClientSessionDTO.class).getBody();
         } catch (RestClientException e){
             System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
@@ -66,7 +63,9 @@ public class PsiServerApi {
                     requestEntity,
                     PsiDatasetMapDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
+            if(e instanceof HttpClientErrorException && ((HttpClientErrorException) e).getStatusCode().equals(HttpStatus.REQUEST_TIMEOUT)){
+                System.err.println("The session has expired. You should start a new session to compute the Private Set Intersection");
+            } else System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
             return null;
         }
@@ -83,7 +82,9 @@ public class PsiServerApi {
                     requestEntity,
                     PsiServerDatasetPageDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
+            if(e instanceof HttpClientErrorException && ((HttpClientErrorException) e).getStatusCode().equals(HttpStatus.REQUEST_TIMEOUT)){
+                System.err.println("The session has expired. You should start a new session to compute the Private Set Intersection");
+            } else System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
             System.exit(1);
             return null;
         }

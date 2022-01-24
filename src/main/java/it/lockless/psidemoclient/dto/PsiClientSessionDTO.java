@@ -1,16 +1,17 @@
 package it.lockless.psidemoclient.dto;
 
-import psi.dto.PsiSessionDTO;
+import psi.client.PsiClient;
+import psi.model.PsiClientSession;
 
 import java.time.Instant;
 
-public class PsiSessionWrapperDTO {
+public class PsiClientSessionDTO {
 
     private Long sessionId;
 
     private Instant expiration;
 
-    private PsiSessionDTO psiSessionDTO;
+    private PsiClientSession psiClientSession;
 
     public Long getSessionId() {
         return sessionId;
@@ -28,20 +29,20 @@ public class PsiSessionWrapperDTO {
         this.expiration = expiration;
     }
 
-    public PsiSessionDTO getPsiSessionDTO() {
-        return psiSessionDTO;
+    public PsiClientSession getPsiClientSession() {
+        return psiClientSession;
     }
 
-    public void setPsiSessionDTO(PsiSessionDTO psiSessionDTO) {
-        this.psiSessionDTO = psiSessionDTO;
+    public void setPsiClientSession(PsiClientSession psiClientSession) {
+        this.psiClientSession = psiClientSession;
     }
 
     @Override
     public String toString() {
-        return "SessionDTO{" +
+        return "PsiClientSessionDTO{" +
                 "sessionId=" + sessionId +
                 ", expiration=" + expiration +
-                ", psiSessionDTO=" + psiSessionDTO +
+                ", psiClientSession=" + psiClientSession +
                 '}';
     }
 }

@@ -11,9 +11,9 @@ import picocli.CommandLine.*;
 import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
-import psi.dto.PsiAlgorithmDTO;
-import psi.dto.PsiAlgorithmParameterDTO;
-import psi.utils.StatisticsFactory;
+import psi.model.PsiAlgorithm;
+import psi.model.PsiAlgorithmParameter;
+import psi.utils.PsiPhaseStatistics;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -91,24 +91,24 @@ public class PsiClientCLI implements Runnable{
         validateServerBaseUrl();
         loadDatasetFromFile();
 
-        PsiAlgorithmParameterDTO psiAlgorithmParameterDTO = new PsiAlgorithmParameterDTO();
+        PsiAlgorithmParameter psiAlgorithmParameter = new PsiAlgorithmParameter();
         switch(algorithm){
             case "BS":
-                psiAlgorithmParameterDTO.setAlgorithm(PsiAlgorithmDTO.BS);
+                psiAlgorithmParameter.setAlgorithm(PsiAlgorithm.BS);
                 break;
             case "DH":
-                psiAlgorithmParameterDTO.setAlgorithm(PsiAlgorithmDTO.DH);
+                psiAlgorithmParameter.setAlgorithm(PsiAlgorithm.DH);
                 break;
             default:
                 throw new CommandLine.ParameterException(spec.commandLine(), "The input algorithm parameter is not supported");
         }
-        psiAlgorithmParameterDTO.setKeySize(keySize);
+        psiAlgorithmParameter.setKeySize(keySize);
 
         // Init the API client that calls the PSI server by passing the server base URL
         PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
 
-        // Create the session by calling POST /psi passing the selected psiAlgorithmParameterDTO as body
-        PsiSessionWrapperDTO psiSessionWrapperDTO = psiServerApi.postPsi(psiAlgorithmParameterDTO);
+        // Create the session by calling POST /psi passing the selected psiAlgorithmParameter as body
+        PsiClientSessionDTO psiClientSessionDTO = psiServerApi.postPsi(new PsiAlgorithmParameterDTO(psiAlgorithmParameter));
 
         // When creating the psiClient, if a key description file is passed as parameter, we use it for keys.
         // Similarly, if enabled, set up and validate the cache
@@ -116,20 +116,20 @@ public class PsiClientCLI implements Runnable{
 
         if(keyDescriptionFile == null){
             if(cache)
-                psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), new RedisPsiCacheProvider(cacheUrl, cachePort));
-            else psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
+                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), new RedisPsiCacheProvider(cacheUrl, cachePort));
+            else psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
         }
         else{
             if(cache)
-                psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), readKeyDescriptionFromFile(keyDescriptionFile), new RedisPsiCacheProvider(cacheUrl, cachePort));
+                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile), new RedisPsiCacheProvider(cacheUrl, cachePort));
             else{
-                psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), readKeyDescriptionFromFile(keyDescriptionFile));
+                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile));
             }
         }
 
         // Send the encrypted client dataset and load the returned entries (double encrypted client dataset)
         Map<Long, String> encryptedMap = psiClient.loadAndEncryptClientDataset(clientDataset);
-        PsiDatasetMapDTO doubleEncryptedMapWrapped = psiServerApi.postPsiClientSet(psiSessionWrapperDTO.getSessionId(), new PsiDatasetMapDTO(encryptedMap));
+        PsiDatasetMapDTO doubleEncryptedMapWrapped = psiServerApi.postPsiClientSet(psiClientSessionDTO.getSessionId(), new PsiDatasetMapDTO(encryptedMap));
         psiClient.loadDoubleEncryptedClientDataset(doubleEncryptedMapWrapped.getContent());
 
         // Read the encrypted server dataset
@@ -137,7 +137,7 @@ public class PsiClientCLI implements Runnable{
         int size = 100;
         PsiServerDatasetPageDTO serverDatasetPageDTO;
         do{
-            serverDatasetPageDTO = psiServerApi.getPsiServerSetPage(psiSessionWrapperDTO.getSessionId(), page++, size);
+            serverDatasetPageDTO = psiServerApi.getPsiServerSetPage(psiClientSessionDTO.getSessionId(), page++, size);
             psiClient.loadServerDataset(serverDatasetPageDTO.getContent());
         } while(!serverDatasetPageDTO.isLast());
 
@@ -151,8 +151,8 @@ public class PsiClientCLI implements Runnable{
         System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is  = " + psiResult.size());
 
         System.out.println("Printing execution statistics");
-        for(StatisticsFactory statisticsFactory : psiClient.getStatisticList())
-            System.out.println(statisticsFactory);
+        for(PsiPhaseStatistics psiPhaseStatistics : psiClient.getStatisticList())
+            System.out.println(psiPhaseStatistics);
     }
 
     public void runList(){
@@ -165,7 +165,7 @@ public class PsiClientCLI implements Runnable{
         }else{
             System.out.println("Supported algorithm-keySize pairs:");
             for(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO : psiAlgorithmParameterDTOList){
-                System.out.println(psiAlgorithmParameterDTO.getAlgorithm().toString()+"-"+psiAlgorithmParameterDTO.getKeySize());
+                System.out.println(psiAlgorithmParameterDTO.getContent().getAlgorithm().toString()+"-"+psiAlgorithmParameterDTO.getContent().getKeySize());
             }
         }
     }
