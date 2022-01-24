@@ -17,7 +17,7 @@ public class PsiServerApi {
         this.restTemplate = new RestTemplate();
     }
 
-    public PsiAlgorithmParameterListDTO getPsiParameter(){
+    public PsiAlgorithmParameterListDTO getPsiAlgorithmParameterList(){
         String url = psiServerBaseUrl+"/psi/parameters";
         HttpHeaders requestHeaders = new HttpHeaders();
         HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);

@@ -14,6 +14,7 @@ import psi.client.PsiClientKeyDescription;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.utils.PsiPhaseStatistics;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -57,14 +58,16 @@ public class PsiClientCLI implements Runnable{
     @Option(names = { "-outkey", "--outputKeyDescription" }, paramLabel = "FILE", defaultValue = "output-key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
     private File outputKeyDescriptionFile;
 
-    @Option(names = { "-c", "--cache" }, paramLabel = "Boolean", description = "Defines whether the client-side PSI calculation should use the redis cache. If not modified with --cacheUrl and --cachePort, attempts to connect to redis on localhost:6379")
+    @Option(names = { "-c", "--cache" }, paramLabel = "Boolean", description = "Defines whether the client-side PSI calculation should use the Redis cache. If not modified with --cacheUrl and --cachePort, attempts to connect to Redis on localhost:6379")
     private boolean cache;
 
-    @Option(names = { "-curl", "--cacheUrl" }, paramLabel = "URL", defaultValue = "localhost", description = "Defines the url of the redis cache. Default value is localhost")
+    @Option(names = { "-curl", "--cacheUrl" }, paramLabel = "URL", defaultValue = "localhost", description = "Defines the url of the Redis cache. Default value is localhost")
     private String cacheUrl;
 
-    @Option(names = { "-cport", "--cachePort" }, paramLabel = "Integer", defaultValue = "6379", description = "Defines the port of the redis cache. Default value is 6379")
+    @Option(names = { "-cport", "--cachePort" }, paramLabel = "Integer", defaultValue = "6379", description = "Defines the port of the Redis cache. Default value is 6379")
     private Integer cachePort;
+
+    private PsiServerApi psiServerApi;
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new it.lockless.psidemoclient.PsiClientCLI()).execute(args);
@@ -73,24 +76,30 @@ public class PsiClientCLI implements Runnable{
 
     @Override
     public void run() {
+        System.out.println("PSI Client started. Running algorithm "+algorithm+" with keySize "+keySize);
+        validateServerBaseUrl();
+        PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
+        boolean successfulExecution;
+
         switch (command) {
             case "list":
-                runList();
+                successfulExecution = runList(psiServerApi);
                 break;
 
             case "compute":
-                runCompute();
+                successfulExecution = runCompute(psiServerApi);
                 break;
 
             default:
                 throw new CommandLine.ParameterException(spec.commandLine(), "The first parameter should either be list or compute");
         }
+
+        if(!successfulExecution)
+            System.exit(1);
     }
 
-    public void runCompute() {
-        validateServerBaseUrl();
+    public boolean runCompute(PsiServerApi psiServerApi) {
         loadDatasetFromFile();
-
         PsiAlgorithmParameter psiAlgorithmParameter = new PsiAlgorithmParameter();
         switch(algorithm){
             case "BS":
@@ -105,7 +114,7 @@ public class PsiClientCLI implements Runnable{
         psiAlgorithmParameter.setKeySize(keySize);
 
         // Init the API client that calls the PSI server by passing the server base URL
-        PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
+         this.psiServerApi = new PsiServerApi(serverBaseUrl);
 
         // Create the session by calling POST /psi passing the selected psiAlgorithmParameter as body
         PsiClientSessionDTO psiClientSessionDTO = psiServerApi.postPsi(new PsiAlgorithmParameterDTO(psiAlgorithmParameter));
@@ -114,17 +123,23 @@ public class PsiClientCLI implements Runnable{
         // Similarly, if enabled, set up and validate the cache
         PsiClient psiClient;
 
-        if(keyDescriptionFile == null){
-            if(cache)
-                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), new RedisPsiCacheProvider(cacheUrl, cachePort));
-            else psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
-        }
-        else{
-            if(cache)
-                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile), new RedisPsiCacheProvider(cacheUrl, cachePort));
-            else{
+        if(!cache) {
+            if (keyDescriptionFile == null)
+                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
+            else
                 psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile));
+        } else{
+            RedisPsiCacheProvider redisPsiCacheProvider;
+            try{
+                redisPsiCacheProvider = new RedisPsiCacheProvider(cacheUrl, cachePort);
+            } catch (JedisConnectionException jedisConnectionException){
+                System.err.println("Cannot connect to the Redis server at "+cacheUrl+":"+cachePort);
+                System.exit(1);
+                return false;
             }
+            if (keyDescriptionFile == null)
+                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), redisPsiCacheProvider);
+            else psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile), redisPsiCacheProvider);
         }
 
         // Send the encrypted client dataset and load the returned entries (double encrypted client dataset)
@@ -153,20 +168,21 @@ public class PsiClientCLI implements Runnable{
         System.out.println("Printing execution statistics");
         for(PsiPhaseStatistics psiPhaseStatistics : psiClient.getStatisticList())
             System.out.println(psiPhaseStatistics);
+
+        return true;
     }
 
-    public void runList(){
-        validateServerBaseUrl();
-        PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
-
-        List<PsiAlgorithmParameterDTO> psiAlgorithmParameterDTOList = psiServerApi.getPsiParameter().getContent();
+    public boolean runList(PsiServerApi psiServerApi){
+        List<PsiAlgorithmParameterDTO> psiAlgorithmParameterDTOList = psiServerApi.getPsiAlgorithmParameterList().getContent();
         if(psiAlgorithmParameterDTOList.size() == 0){
             System.out.println("The server does not support any PSI algorithm");
+            return false;
         }else{
             System.out.println("Supported algorithm-keySize pairs:");
             for(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO : psiAlgorithmParameterDTOList){
                 System.out.println(psiAlgorithmParameterDTO.getContent().getAlgorithm().toString()+"-"+psiAlgorithmParameterDTO.getContent().getKeySize());
             }
+            return true;
         }
     }
 

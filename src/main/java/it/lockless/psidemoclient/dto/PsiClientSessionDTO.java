@@ -1,6 +1,5 @@
 package it.lockless.psidemoclient.dto;
 
-import psi.client.PsiClient;
 import psi.model.PsiClientSession;
 
 import java.time.Instant;
