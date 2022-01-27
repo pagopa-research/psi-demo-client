@@ -21,10 +21,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+
+/**
+ To run this CLI outside IntelliJ should run :
+
+ mvn clean compile assembly:single
+
+ And then run the application located in /target with the following cmd:
+
+ java -jar psi-1.0.0.jar [arguments]
+
+ */
 
 @Command(name = "psiClientCLI", mixinStandardHelpOptions = true, version = "psiClientCLI 1.0", description = "Demo implementation of a PSI client using the psi-sdk.")
 public class PsiClientCLI implements Runnable{
@@ -76,7 +85,6 @@ public class PsiClientCLI implements Runnable{
 
     @Override
     public void run() {
-        System.out.println("PSI Client started. Running algorithm "+algorithm+" with keySize "+keySize);
         validateServerBaseUrl();
         PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
         boolean successfulExecution;
@@ -99,6 +107,7 @@ public class PsiClientCLI implements Runnable{
     }
 
     public boolean runCompute(PsiServerApi psiServerApi) {
+        System.out.println("PSI Client started. Running algorithm "+algorithm+" with keySize "+keySize);
         loadDatasetFromFile();
         PsiAlgorithmParameter psiAlgorithmParameter = new PsiAlgorithmParameter();
         switch(algorithm){
@@ -153,7 +162,7 @@ public class PsiClientCLI implements Runnable{
         PsiServerDatasetPageDTO serverDatasetPageDTO;
         do{
             serverDatasetPageDTO = psiServerApi.getPsiServerSetPage(psiClientSessionDTO.getSessionId(), page++, size);
-            psiClient.loadServerDataset(serverDatasetPageDTO.getContent());
+            psiClient.loadAndProcessServerDataset(serverDatasetPageDTO.getContent());
         } while(!serverDatasetPageDTO.isLast());
 
         // Compute PSI and write the result on the output file
@@ -180,6 +189,7 @@ public class PsiClientCLI implements Runnable{
         }else{
             System.out.println("Supported algorithm-keySize pairs:");
             for(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO : psiAlgorithmParameterDTOList){
+                System.out.println(psiAlgorithmParameterDTO);
                 System.out.println(psiAlgorithmParameterDTO.getContent().getAlgorithm().toString()+"-"+psiAlgorithmParameterDTO.getContent().getKeySize());
             }
             return true;
