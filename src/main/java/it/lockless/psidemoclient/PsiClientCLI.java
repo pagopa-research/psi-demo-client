@@ -31,7 +31,7 @@ import java.util.*;
 
  And then run the application located in /target with the following cmd:
 
- java -jar psi-1.0.0.jar [arguments]
+ java -jar psi-demo-client-1.0-jar-with-dependencies.jar [arguments]
 
  */
 
