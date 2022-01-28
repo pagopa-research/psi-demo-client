@@ -122,9 +122,6 @@ public class PsiClientCLI implements Runnable{
         }
         psiAlgorithmParameter.setKeySize(keySize);
 
-        // Init the API client that calls the PSI server by passing the server base URL
-         this.psiServerApi = new PsiServerApi(serverBaseUrl);
-
         // Create the session by calling POST /psi passing the selected psiAlgorithmParameter as body
         PsiClientSessionDTO psiClientSessionDTO = psiServerApi.postPsi(new PsiAlgorithmParameterDTO(psiAlgorithmParameter));
 
@@ -172,7 +169,7 @@ public class PsiClientCLI implements Runnable{
         // Save key description used during by the execution in the outputKeyDescriptionFile
         writeKeyDescriptionToFile(psiClient.getClientKeyDescription(), outputKeyDescriptionFile);
 
-        System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is  = " + psiResult.size());
+        System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is = " + psiResult.size());
 
         System.out.println("Printing execution statistics");
         for(PsiPhaseStatistics psiPhaseStatistics : psiClient.getStatisticList())
@@ -182,15 +179,15 @@ public class PsiClientCLI implements Runnable{
     }
 
     public boolean runList(PsiServerApi psiServerApi){
-        List<PsiAlgorithmParameterDTO> psiAlgorithmParameterDTOList = psiServerApi.getPsiAlgorithmParameterList().getContent();
+        List<PsiAlgorithmParameter> psiAlgorithmParameterDTOList = psiServerApi.getPsiAlgorithmParameterList().getContent();
         if(psiAlgorithmParameterDTOList.size() == 0){
             System.out.println("The server does not support any PSI algorithm");
             return false;
         }else{
             System.out.println("Supported algorithm-keySize pairs:");
-            for(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO : psiAlgorithmParameterDTOList){
-                System.out.println(psiAlgorithmParameterDTO);
-                System.out.println(psiAlgorithmParameterDTO.getContent().getAlgorithm().toString()+"-"+psiAlgorithmParameterDTO.getContent().getKeySize());
+            for(PsiAlgorithmParameter psiAlgorithmParameter : psiAlgorithmParameterDTOList){
+                System.out.println(psiAlgorithmParameter);
+                System.out.println(psiAlgorithmParameter.getAlgorithm().toString()+"-"+psiAlgorithmParameter.getKeySize());
             }
             return true;
         }

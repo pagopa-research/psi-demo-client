@@ -34,18 +34,16 @@ public class RunListTest {
         PsiAlgorithmParameter psiAlgorithmParameter2048 = new PsiAlgorithmParameter();
         psiAlgorithmParameter2048.setAlgorithm(PsiAlgorithm.BS);
         psiAlgorithmParameter2048.setKeySize(2048);
-        PsiAlgorithmParameterDTO psiAlgorithmParameter2048DTO = new PsiAlgorithmParameterDTO(psiAlgorithmParameter2048);
 
         PsiAlgorithmParameter psiAlgorithmParameter4096 = new PsiAlgorithmParameter();
         psiAlgorithmParameter4096.setAlgorithm(PsiAlgorithm.BS);
         psiAlgorithmParameter4096.setKeySize(4096);
-        PsiAlgorithmParameterDTO psiAlgorithmParameter4096DTO = new PsiAlgorithmParameterDTO(psiAlgorithmParameter4096);
 
-        List<PsiAlgorithmParameterDTO> psiAlgorithmParameterDTOList = new LinkedList<>();
-        psiAlgorithmParameterDTOList.add(psiAlgorithmParameter2048DTO);
-        psiAlgorithmParameterDTOList.add(psiAlgorithmParameter4096DTO);
+        List<PsiAlgorithmParameter> psiAlgorithmParameterList = new LinkedList<>();
+        psiAlgorithmParameterList.add(psiAlgorithmParameter2048);
+        psiAlgorithmParameterList.add(psiAlgorithmParameter4096);
 
-        PsiAlgorithmParameterListDTO psiAlgorithmParameterListDTO = new PsiAlgorithmParameterListDTO(psiAlgorithmParameterDTOList);
+        PsiAlgorithmParameterListDTO psiAlgorithmParameterListDTO = new PsiAlgorithmParameterListDTO(psiAlgorithmParameterList);
         when(psiServerApi.getPsiAlgorithmParameterList()).thenReturn(psiAlgorithmParameterListDTO);
     }
 
