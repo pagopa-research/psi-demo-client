@@ -12,6 +12,8 @@ public class PsiClientSessionDTO {
 
     private PsiClientSession psiClientSession;
 
+    private BloomFilterDTO bloomFilterDTO;
+
     public Long getSessionId() {
         return sessionId;
     }
@@ -36,12 +38,21 @@ public class PsiClientSessionDTO {
         this.psiClientSession = psiClientSession;
     }
 
+    public BloomFilterDTO getBloomFilterDTO() {
+        return bloomFilterDTO;
+    }
+
+    public void setBloomFilterDTO(BloomFilterDTO bloomFilterDTO) {
+        this.bloomFilterDTO = bloomFilterDTO;
+    }
+
     @Override
     public String toString() {
         return "PsiClientSessionDTO{" +
                 "sessionId=" + sessionId +
                 ", expiration=" + expiration +
                 ", psiClientSession=" + psiClientSession +
+                ", bloomFilterDTO=" + bloomFilterDTO +
                 '}';
     }
 }

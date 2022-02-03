@@ -69,6 +69,19 @@
         <version>1.0</version>
     </dependency>
 
+    <!-- guava for bloom-filter -->
+    <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>31.0.1-jre</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.7.33</version>
+    </dependency>
+
     <!-- test only -->
     <dependency>
         <groupId>org.junit.jupiter</groupId>

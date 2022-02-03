@@ -1,7 +1,9 @@
 package it.lockless.psidemoclient;
+import com.google.common.hash.BloomFilter;
 import it.lockless.psidemoclient.cache.RedisPsiCacheProvider;
 import it.lockless.psidemoclient.client.PsiServerApi;
 import it.lockless.psidemoclient.dto.*;
+import it.lockless.psidemoclient.util.BloomFilterHelper;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -21,6 +23,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 
@@ -76,6 +80,9 @@ public class PsiClientCLI implements Runnable{
     @Option(names = { "-cport", "--cachePort" }, paramLabel = "Integer", defaultValue = "6379", description = "Defines the port of the Redis cache. Default value is 6379")
     private Integer cachePort;
 
+    @Option(names = { "-bf", "--bloomFilterMaxAge" }, paramLabel = "Integer", description = "If set, defines the max minutes since the Bloom Filter creation to consider it valid. If the server sends an older Bloom Filter, the Bloom Filter is not applied. If this parameter is not set, the Bloom Filter is not applied")
+    private Integer bloomFilterMaxAge;
+
     private PsiServerApi psiServerApi;
 
     public static void main(String... args) {
@@ -125,10 +132,23 @@ public class PsiClientCLI implements Runnable{
         // Create the session by calling POST /psi passing the selected psiAlgorithmParameter as body
         PsiClientSessionDTO psiClientSessionDTO = psiServerApi.postPsi(new PsiAlgorithmParameterDTO(psiAlgorithmParameter));
 
+        // If the server sent a Bloom Filter was created less than bloomFilterMaxAge minutes ago
+        // then filter the input dataset with the Bloom Filter
+        if(this.bloomFilterMaxAge != null && psiClientSessionDTO.getBloomFilterDTO() != null){
+            if(psiClientSessionDTO.getBloomFilterDTO().getSerializedBloomFilter() == null
+                    || psiClientSessionDTO.getExpiration() == null)
+                throw new RuntimeException("Error reading the BloomFilterDTO in the PsiClientSessionDTO");
+
+            if(psiClientSessionDTO.getBloomFilterDTO().getBloomFilterCreationDate().
+                    isAfter(Instant.now().minus(bloomFilterMaxAge, ChronoUnit.MINUTES))){
+                this.clientDataset = getFilteredDatasetWithBloomFilter(psiClientSessionDTO.getBloomFilterDTO());
+                System.out.println("Dataset filtered to " + clientDataset.size() + " entries by applying the Bloom Filter");
+            } else System.out.println("The Bloom Filter sent by the server is stale");
+        }
+
         // When creating the psiClient, if a key description file is passed as parameter, we use it for keys.
         // Similarly, if enabled, set up and validate the cache
         PsiClient psiClient;
-
         if(!cache) {
             if (keyDescriptionFile == null)
                 psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
@@ -256,5 +276,11 @@ public class PsiClientCLI implements Runnable{
             System.err.println("Cannot write the output key description file "+outputYamlFile.getPath());
             System.exit(1);
         }
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private Set<String> getFilteredDatasetWithBloomFilter(BloomFilterDTO bloomFilterDTO) {
+        BloomFilter<CharSequence> bloomFilter = BloomFilterHelper.getBloomFilterFromByteArray(bloomFilterDTO.getSerializedBloomFilter());
+        return BloomFilterHelper.filterSet(this.clientDataset, bloomFilter);
     }
 }
