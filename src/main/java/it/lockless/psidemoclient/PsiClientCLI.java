@@ -15,7 +15,7 @@ import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
-import psi.utils.PsiPhaseStatistics;
+import psi.model.PsiPhaseStatistics;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.*;
@@ -123,6 +123,12 @@ public class PsiClientCLI implements Runnable{
                 break;
             case "DH":
                 psiAlgorithmParameter.setAlgorithm(PsiAlgorithm.DH);
+                break;
+            case "ECBS":
+                psiAlgorithmParameter.setAlgorithm(PsiAlgorithm.ECBS);
+                break;
+            case "ECDH":
+                psiAlgorithmParameter.setAlgorithm(PsiAlgorithm.ECDH);
                 break;
             default:
                 throw new CommandLine.ParameterException(spec.commandLine(), "The input algorithm parameter is not supported");

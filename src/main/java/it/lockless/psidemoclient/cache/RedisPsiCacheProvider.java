@@ -26,7 +26,7 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
      *
      * @param key   key corresponding to the value to be retrieved
      *
-     * @return an Optional containing the the cached value if present, Optional.empty() otherwise
+     * @return an Optional containing the cached value if present, Optional.empty() otherwise
      */
     @Override
     public Optional<String> get(String key) {
