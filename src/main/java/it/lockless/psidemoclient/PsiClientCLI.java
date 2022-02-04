@@ -4,6 +4,7 @@ import it.lockless.psidemoclient.cache.RedisPsiCacheProvider;
 import it.lockless.psidemoclient.client.PsiServerApi;
 import it.lockless.psidemoclient.dto.*;
 import it.lockless.psidemoclient.util.BloomFilterHelper;
+import it.lockless.psidemoclient.util.PsiClientKeyDescriptionYaml;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -13,6 +14,7 @@ import picocli.CommandLine.*;
 import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
+import psi.client.PsiClientKeyDescriptionFactory;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiPhaseStatistics;
@@ -68,7 +70,7 @@ public class PsiClientCLI implements Runnable{
     @Option(names = { "-key", "--keyDescription" }, paramLabel = "FILE", description = "Yaml file containing the key description for the specific algorithm")
     private File keyDescriptionFile;
 
-    @Option(names = { "-outkey", "--outputKeyDescription" }, paramLabel = "FILE", defaultValue = "output-key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
+    @Option(names = { "-outkey", "--outputKeyDescription" }, paramLabel = "FILE", defaultValue = "key.yaml", description = "Output file on which the key description used by the algorithm is printed at the end of the execution")
     private File outputKeyDescriptionFile;
 
     @Option(names = { "-c", "--cache" }, paramLabel = "Boolean", description = "Defines whether the client-side PSI calculation should use the Redis cache. If not modified with --cacheUrl and --cachePort, attempts to connect to Redis on localhost:6379")
@@ -269,13 +271,23 @@ public class PsiClientCLI implements Runnable{
             System.err.println("Cannot find the input key description file" +keyDescriptionFile.getPath());
             System.exit(1);
         }
-        Yaml yaml = new Yaml(new Constructor(PsiClientKeyDescription.class));
-        return yaml.load(inputStream);
+        Yaml yaml = new Yaml(new Constructor(PsiClientKeyDescriptionYaml.class));
+        PsiClientKeyDescriptionYaml psiClientKeyDescriptionYaml = yaml.load(inputStream);
+        System.out.println("Key description read from file "+keyDescriptionFile);
+
+        return PsiClientKeyDescriptionFactory.createGenericPsiClientKeyDescription(
+                psiClientKeyDescriptionYaml.getClientPrivateKey(),
+                psiClientKeyDescriptionYaml.getServerPublicKey(),
+                psiClientKeyDescriptionYaml.getModulus(),
+                psiClientKeyDescriptionYaml.getEcClientPrivateKey(),
+                psiClientKeyDescriptionYaml.getEcServerPublicKey(),
+                psiClientKeyDescriptionYaml.getEcSpecName());
     }
 
     private void writeKeyDescriptionToFile(PsiClientKeyDescription psiClientKeyDescription, File outputYamlFile){
+        PsiClientKeyDescriptionYaml psiClientKeyDescriptionYaml = new PsiClientKeyDescriptionYaml(psiClientKeyDescription);
         Yaml yaml = new Yaml();
-        String yamlString = yaml.dumpAs(psiClientKeyDescription, Tag.MAP, DumperOptions.FlowStyle.BLOCK);
+        String yamlString = yaml.dumpAs(psiClientKeyDescriptionYaml, Tag.MAP, DumperOptions.FlowStyle.BLOCK);
         try {
             Files.write(outputYamlFile.toPath(), yamlString.getBytes());
         } catch (IOException e) {
