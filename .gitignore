@@ -137,3 +137,5 @@ buildNumber.properties
 /out.txt
 /key.yaml
 /output-key.yaml
+/ecdhKey.yaml
+/dhKey.yaml

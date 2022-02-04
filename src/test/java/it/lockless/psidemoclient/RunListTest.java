@@ -15,7 +15,7 @@ import psi.model.PsiAlgorithmParameter;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +49,6 @@ public class RunListTest {
 
     @Test
     void runList(){
-        assertTrue(psiClientCLI.runList(psiServerApi));
+        assertEquals(2, psiClientCLI.runList(psiServerApi));
     }
 }

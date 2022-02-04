@@ -96,26 +96,26 @@ public class PsiClientCLI implements Runnable{
     public void run() {
         validateServerBaseUrl();
         PsiServerApi psiServerApi = new PsiServerApi(serverBaseUrl);
-        boolean successfulExecution;
 
         switch (command) {
             case "list":
-                successfulExecution = runList(psiServerApi);
+                int listResultSize = runList(psiServerApi);
+                if(listResultSize < 0)
+                    System.exit(1);
                 break;
 
             case "compute":
-                successfulExecution = runCompute(psiServerApi);
+                ProcessExecutionResult processExecutionResult = runCompute(psiServerApi);
+                if(!processExecutionResult.isSuccessful())
+                    System.exit(1);
                 break;
 
             default:
                 throw new CommandLine.ParameterException(spec.commandLine(), "The first parameter should either be list or compute");
         }
-
-        if(!successfulExecution)
-            System.exit(1);
     }
 
-    public boolean runCompute(PsiServerApi psiServerApi) {
+    public ProcessExecutionResult runCompute(PsiServerApi psiServerApi) {
         System.out.println("PSI Client started. Running algorithm "+algorithm+" with keySize "+keySize);
         loadDatasetFromFile();
         PsiAlgorithmParameter psiAlgorithmParameter = new PsiAlgorithmParameter();
@@ -169,7 +169,9 @@ public class PsiClientCLI implements Runnable{
             } catch (JedisConnectionException jedisConnectionException){
                 System.err.println("Cannot connect to the Redis server at "+cacheUrl+":"+cachePort);
                 System.exit(1);
-                return false;
+                ProcessExecutionResult processExecutionResult = new ProcessExecutionResult();
+                processExecutionResult.successful = false;
+                return processExecutionResult;
             }
             if (keyDescriptionFile == null)
                 psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), redisPsiCacheProvider);
@@ -199,25 +201,33 @@ public class PsiClientCLI implements Runnable{
 
         System.out.println("PSI computed correctly. PSI result written on "+outputFile.getPath()+". The size of the intersection is = " + psiResult.size());
 
-        System.out.println("Printing execution statistics");
-        for(PsiPhaseStatistics psiPhaseStatistics : psiClient.getStatisticList())
+        // Fill up the ProcessExecutionResult which summarizes the outcome of the execution
+        ProcessExecutionResult processExecutionResult = new ProcessExecutionResult();
+        processExecutionResult.psiSize = psiResult.size();
+        processExecutionResult.successful = true;
+        System.out.println("\nPrinting execution statistics");
+        for(PsiPhaseStatistics psiPhaseStatistics : psiClient.getStatisticList()){
             System.out.println(psiPhaseStatistics);
+            processExecutionResult.totalCacheHit += psiPhaseStatistics.getCacheHit();
+            processExecutionResult.totalCacheMiss += psiPhaseStatistics.getCacheMiss();
+        }
+        System.out.println("");
 
-        return true;
+        return processExecutionResult;
     }
 
-    public boolean runList(PsiServerApi psiServerApi){
+    public int runList(PsiServerApi psiServerApi){
         List<PsiAlgorithmParameter> psiAlgorithmParameterDTOList = psiServerApi.getPsiAlgorithmParameterList().getContent();
         if(psiAlgorithmParameterDTOList.size() == 0){
             System.out.println("The server does not support any PSI algorithm");
-            return false;
+            return -1;
         }else{
             System.out.println("Supported algorithm-keySize pairs:");
             for(PsiAlgorithmParameter psiAlgorithmParameter : psiAlgorithmParameterDTOList){
                 System.out.println(psiAlgorithmParameter);
                 System.out.println(psiAlgorithmParameter.getAlgorithm().toString()+"-"+psiAlgorithmParameter.getKeySize());
             }
-            return true;
+            return psiAlgorithmParameterDTOList.size();
         }
     }
 
@@ -300,5 +310,57 @@ public class PsiClientCLI implements Runnable{
     private Set<String> getFilteredDatasetWithBloomFilter(BloomFilterDTO bloomFilterDTO) {
         BloomFilter<CharSequence> bloomFilter = BloomFilterHelper.getBloomFilterFromByteArray(bloomFilterDTO.getSerializedBloomFilter());
         return BloomFilterHelper.filterSet(this.clientDataset, bloomFilter);
+    }
+
+    /**
+     * Static class used to wrap the result of the compute command to enable in-depth unit testing
+     */
+    public static class ProcessExecutionResult {
+         private boolean successful;
+         private int psiSize;
+         private int totalCacheHit;
+         private int totalCacheMiss;
+
+        public boolean isSuccessful() {
+            return successful;
+        }
+
+        public void setSuccessful(boolean successful) {
+            this.successful = successful;
+        }
+
+        public int getPsiSize() {
+            return psiSize;
+        }
+
+        public void setPsiSize(int psiSize) {
+            this.psiSize = psiSize;
+        }
+
+        public int getTotalCacheHit() {
+            return totalCacheHit;
+        }
+
+        public void setTotalCacheHit(int totalCacheHit) {
+            this.totalCacheHit = totalCacheHit;
+        }
+
+        public int getTotalCacheMiss() {
+            return totalCacheMiss;
+        }
+
+        public void setTotalCacheMiss(int totalCacheMiss) {
+            this.totalCacheMiss = totalCacheMiss;
+        }
+
+        @Override
+        public String toString() {
+            return "ProcessExecutionResult{" +
+                    "successful=" + successful +
+                    ", psiSize=" + psiSize +
+                    ", totalCacheHit=" + totalCacheHit +
+                    ", totalCacheMiss=" + totalCacheMiss +
+                    '}';
+        }
     }
 }
