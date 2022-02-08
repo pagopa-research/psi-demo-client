@@ -15,6 +15,7 @@ import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
 import psi.client.PsiClientKeyDescriptionFactory;
+import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiPhaseStatistics;
@@ -145,7 +146,7 @@ public class PsiClientCLI implements Runnable{
         if(this.bloomFilterMaxAge != null && psiClientSessionDTO.getBloomFilterDTO() != null){
             if(psiClientSessionDTO.getBloomFilterDTO().getSerializedBloomFilter() == null
                     || psiClientSessionDTO.getExpiration() == null)
-                throw new RuntimeException("Error reading the BloomFilterDTO in the PsiClientSessionDTO");
+                throw new CommandLine.ParameterException(spec.commandLine(), "Error reading the BloomFilterDTO in the PsiClientSessionDTO");
 
             if(psiClientSessionDTO.getBloomFilterDTO().getBloomFilterCreationDate().
                     isAfter(Instant.now().minus(bloomFilterMaxAge, ChronoUnit.MINUTES))){
@@ -158,24 +159,29 @@ public class PsiClientCLI implements Runnable{
         // Similarly, if enabled, set up and validate the cache
         PsiClient psiClient;
         if(!cache) {
-            if (keyDescriptionFile == null)
-                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
-            else
-                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile));
+            try{
+                if (keyDescriptionFile == null)
+                    psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
+                else
+                    psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile));
+            } catch (UnsupportedKeySizeException unsupportedKeySizeException){
+                throw new CommandLine.ParameterException(spec.commandLine(), unsupportedKeySizeException.getMessage());
+            }
         } else{
             RedisPsiCacheProvider redisPsiCacheProvider;
             try{
                 redisPsiCacheProvider = new RedisPsiCacheProvider(cacheUrl, cachePort);
             } catch (JedisConnectionException jedisConnectionException){
-                System.err.println("Cannot connect to the Redis server at "+cacheUrl+":"+cachePort);
-                System.exit(1);
-                ProcessExecutionResult processExecutionResult = new ProcessExecutionResult();
-                processExecutionResult.successful = false;
-                return processExecutionResult;
+                throw new CommandLine.ParameterException(spec.commandLine(), "Cannot connect to the Redis server at "+cacheUrl+":"+cachePort);
             }
-            if (keyDescriptionFile == null)
-                psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), redisPsiCacheProvider);
-            else psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile), redisPsiCacheProvider);
+            try {
+                if (keyDescriptionFile == null)
+                    psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), redisPsiCacheProvider);
+                else
+                    psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), readKeyDescriptionFromFile(keyDescriptionFile), redisPsiCacheProvider);
+            } catch (UnsupportedKeySizeException unsupportedKeySizeException){
+                throw new CommandLine.ParameterException(spec.commandLine(), unsupportedKeySizeException.getMessage());
+            }
         }
 
         // Send the encrypted client dataset and load the returned entries (double encrypted client dataset)
@@ -211,7 +217,7 @@ public class PsiClientCLI implements Runnable{
             processExecutionResult.totalCacheHit += psiPhaseStatistics.getCacheHit();
             processExecutionResult.totalCacheMiss += psiPhaseStatistics.getCacheMiss();
         }
-        System.out.println("");
+        System.out.println();
 
         return processExecutionResult;
     }

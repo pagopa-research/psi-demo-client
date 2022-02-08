@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
@@ -40,10 +41,10 @@ public class RunComputeTest {
 
     Set<String> serverDataset;
 
-    private PsiServerSession mockPostSession(PsiAlgorithmParameter psiAlgorithmParameter){
+    private PsiServerSession mockPostSession(PsiAlgorithmParameter psiAlgorithmParameter) throws UnsupportedKeySizeException {
        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter);
-        PsiClientSession psiClientSession = PsiClientSession.getFromServerSession(psiServerSession);
-        PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
+       PsiClientSession psiClientSession = PsiClientSession.getFromServerSession(psiServerSession);
+       PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
         psiClientSessionDTO.setPsiClientSession(psiClientSession);
         psiClientSessionDTO.setSessionId(1L);
         psiClientSessionDTO.setExpiration(Instant.now().plus(1, ChronoUnit.HOURS));
@@ -51,7 +52,7 @@ public class RunComputeTest {
         return psiServerSession;
     }
 
-    private PsiDatasetMapDTO encryptClientDataset(PsiServerSession psiServerSession, PsiDatasetMapDTO psiDatasetMapDTO){
+    private PsiDatasetMapDTO encryptClientDataset(PsiServerSession psiServerSession, PsiDatasetMapDTO psiDatasetMapDTO) throws UnsupportedKeySizeException {
         PsiServer psiServer = PsiServerFactory.loadSession(psiServerSession);
         Map<Long, String> doubleEncryptedMap = psiServer.encryptDatasetMap(psiDatasetMapDTO.getContent());
         return new PsiDatasetMapDTO(doubleEncryptedMap);
@@ -62,7 +63,7 @@ public class RunComputeTest {
                 invocation -> encryptClientDataset(psiServerSession, invocation.getArgument(1)));
     }
 
-    private void mockGetPsiServerSetPage(PsiServerSession psiServerSession){
+    private void mockGetPsiServerSetPage(PsiServerSession psiServerSession) throws UnsupportedKeySizeException {
         PsiServer psiServer = PsiServerFactory.loadSession(psiServerSession);
         Set<String> encryptedDataset = psiServer.encryptDataset(serverDataset);
 
@@ -117,7 +118,7 @@ public class RunComputeTest {
         loadServerDataset();
     }
 
-    private void setupMock(PsiAlgorithm psiAlgorithm, int keySize ) throws IllegalAccessException {
+    private void setupMock(PsiAlgorithm psiAlgorithm, int keySize ) throws IllegalAccessException, UnsupportedKeySizeException {
         FieldUtils.writeField(psiClientCLI,"algorithm", psiAlgorithm.toString(), true);
         FieldUtils.writeField(psiClientCLI,"keySize", keySize, true);
         PsiAlgorithmParameter psiAlgorithmParameter = new PsiAlgorithmParameter();
@@ -135,32 +136,32 @@ public class RunComputeTest {
     }
 
     @Test
-    void runBsComputeBasic() throws IllegalAccessException {
+    void runBsComputeBasic() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.BS, 2048);
         assertEquals(5, psiClientCLI.runCompute(psiServerApi).getPsiSize());
     }
 
     @Test
-    void runDhComputeBasic() throws IllegalAccessException {
+    void runDhComputeBasic() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.DH, 2048);
         assertEquals(5, psiClientCLI.runCompute(psiServerApi).getPsiSize());
     }
 
     @Test
-    void runEcbsComputeBasic() throws IllegalAccessException {
+    void runEcbsComputeBasic() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.ECBS, 256);
         assertEquals(5, psiClientCLI.runCompute(psiServerApi).getPsiSize());
     }
 
     @Test
-    void runEcdhComputeBasic() throws IllegalAccessException {
+    void runEcdhComputeBasic() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.ECDH, 256);
         assertEquals(5, psiClientCLI.runCompute(psiServerApi).getPsiSize());
     }
 
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
-    void runBsComputeCache() throws IllegalAccessException {
+    void runBsComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.BS, 2048);
         setupRedis();
 
@@ -175,7 +176,7 @@ public class RunComputeTest {
 
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
-    void runDhComputeCache() throws IllegalAccessException {
+    void runDhComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.DH, 2048);
         setupRedis();
 
@@ -194,7 +195,7 @@ public class RunComputeTest {
 
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
-    void runEcbsComputeCache() throws IllegalAccessException {
+    void runEcbsComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.ECBS, 256);
         setupRedis();
 
@@ -209,7 +210,7 @@ public class RunComputeTest {
 
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
-    void runEcdhComputeCache() throws IllegalAccessException {
+    void runEcdhComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
         setupMock(PsiAlgorithm.ECDH, 256);
         setupRedis();
 

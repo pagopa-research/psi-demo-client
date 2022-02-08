@@ -2,9 +2,8 @@ package it.lockless.psidemoclient.client;
 
 import it.lockless.psidemoclient.dto.*;
 import org.springframework.http.*;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
+import psi.exception.CustomRuntimeException;
 
 public class PsiServerApi {
 
@@ -15,6 +14,24 @@ public class PsiServerApi {
     public PsiServerApi(String psiServerBaseUrl){
         this.psiServerBaseUrl = psiServerBaseUrl;
         this.restTemplate = new RestTemplate();
+    }
+
+    private void handleRestClientException(RestClientException e){
+        if(e instanceof HttpClientErrorException){
+            HttpStatus httpStatus = ((HttpClientErrorException) e).getStatusCode();
+            if(httpStatus.equals((HttpStatus.REQUEST_TIMEOUT)))
+                System.err.println("Status code: " + HttpStatus.REQUEST_TIMEOUT+ ". The session has expired. You should start a new session to compute the Private Set Intersection");
+            else System.err.println("Status code: " + e.getMessage());
+        } else if(e instanceof HttpServerErrorException){
+            System.err.println("Status code: " + e.getMessage());
+        }
+        else if(e instanceof ResourceAccessException){
+            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
+        }
+        else{
+            System.err.println("Unexpected error in the communication with the server. Error Message: " + e.getMessage());
+        }
+        System.exit(1);
     }
 
     public PsiAlgorithmParameterListDTO getPsiAlgorithmParameterList(){
@@ -28,9 +45,8 @@ public class PsiServerApi {
                     requestEntity,
                     PsiAlgorithmParameterListDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
-            System.exit(1);
-            return null;
+             handleRestClientException(e);
+             return null;
         }
     }
 
@@ -46,8 +62,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiClientSessionDTO.class).getBody();
         } catch (RestClientException e){
-            System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
-            System.exit(1);
+            handleRestClientException(e);
             return null;
         }
     }
@@ -63,10 +78,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiDatasetMapDTO.class).getBody();
         } catch (RestClientException e){
-            if(e instanceof HttpClientErrorException && ((HttpClientErrorException) e).getStatusCode().equals(HttpStatus.REQUEST_TIMEOUT)){
-                System.err.println("The session has expired. You should start a new session to compute the Private Set Intersection");
-            } else System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
-            System.exit(1);
+            handleRestClientException(e);
             return null;
         }
     }
@@ -82,10 +94,7 @@ public class PsiServerApi {
                     requestEntity,
                     PsiServerDatasetPageDTO.class).getBody();
         } catch (RestClientException e){
-            if(e instanceof HttpClientErrorException && ((HttpClientErrorException) e).getStatusCode().equals(HttpStatus.REQUEST_TIMEOUT)){
-                System.err.println("The session has expired. You should start a new session to compute the Private Set Intersection");
-            } else System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
-            System.exit(1);
+            handleRestClientException(e);
             return null;
         }
     }
