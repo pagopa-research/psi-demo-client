@@ -11,13 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import psi.PsiServerFactory;
+import psi.PsiServerSession;
 import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
 import psi.server.PsiServer;
-import psi.server.PsiServerFactory;
-import psi.server.PsiServerSession;
 
 import java.io.File;
 import java.time.Instant;

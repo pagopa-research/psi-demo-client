@@ -12,6 +12,7 @@ public class PsiClientKeyDescriptionYaml {
     private String clientPrivateKey;
     private String serverPublicKey;
     private String modulus;
+    private String generator;
 
     private String ecClientPrivateKey;
     private String ecServerPublicKey;
@@ -24,6 +25,7 @@ public class PsiClientKeyDescriptionYaml {
         this.clientPrivateKey = psiClientKeyDescription.getClientPrivateKey();
         this.serverPublicKey = psiClientKeyDescription.getServerPublicKey();
         this.modulus = psiClientKeyDescription.getModulus();
+        this.generator = psiClientKeyDescription.getGenerator();
         this.ecClientPrivateKey = psiClientKeyDescription.getEcClientPrivateKey();
         this.ecServerPublicKey = psiClientKeyDescription.getEcServerPublicKey();
         this.ecSpecName = psiClientKeyDescription.getEcSpecName();
@@ -51,6 +53,14 @@ public class PsiClientKeyDescriptionYaml {
 
     public void setModulus(String modulus) {
         this.modulus = modulus;
+    }
+
+    public String getGenerator() {
+        return generator;
+    }
+
+    public void setGenerator(String generator) {
+        this.generator = generator;
     }
 
     public String getEcClientPrivateKey() {
@@ -83,6 +93,7 @@ public class PsiClientKeyDescriptionYaml {
                 "clientPrivateKey='" + clientPrivateKey + '\'' +
                 ", serverPublicKey='" + serverPublicKey + '\'' +
                 ", modulus='" + modulus + '\'' +
+                ", generator='" + generator + '\'' +
                 ", ecClientPrivateKey='" + ecClientPrivateKey + '\'' +
                 ", ecServerPublicKey='" + ecServerPublicKey + '\'' +
                 ", ecSpecName='" + ecSpecName + '\'' +

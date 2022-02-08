@@ -11,8 +11,8 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Tag;
 import picocli.CommandLine;
 import picocli.CommandLine.*;
+import psi.PsiClientFactory;
 import psi.client.PsiClient;
-import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
 import psi.client.PsiClientKeyDescriptionFactory;
 import psi.exception.UnsupportedKeySizeException;
@@ -295,6 +295,7 @@ public class PsiClientCLI implements Runnable{
                 psiClientKeyDescriptionYaml.getClientPrivateKey(),
                 psiClientKeyDescriptionYaml.getServerPublicKey(),
                 psiClientKeyDescriptionYaml.getModulus(),
+                psiClientKeyDescriptionYaml.getGenerator(),
                 psiClientKeyDescriptionYaml.getEcClientPrivateKey(),
                 psiClientKeyDescriptionYaml.getEcServerPublicKey(),
                 psiClientKeyDescriptionYaml.getEcSpecName());
