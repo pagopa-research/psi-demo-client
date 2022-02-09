@@ -31,15 +31,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 
-/**
- To run this CLI outside IntelliJ should run :
+/*
+Command to create an executable JAR:
+mvn clean compile assembly:single
 
- mvn clean compile assembly:single
-
- And then run the application located in /target with the following cmd:
-
- java -jar psi-demo-client-1.0-jar-with-dependencies.jar [arguments]
-
+Command to run the JAR located in /target:
+java -jar psi-demo-client-1.0-jar-with-dependencies.jar [arguments]
  */
 
 @Command(name = "psiClientCLI", mixinStandardHelpOptions = true, version = "psiClientCLI 1.0", description = "Demo implementation of a PSI client using the psi-sdk.")
@@ -116,6 +113,14 @@ public class PsiClientCLI implements Runnable{
         }
     }
 
+    /**
+     * Performs the complete PSI computation which comprises both local computations (different calls to the psi-sdk)
+     * and API calls to the server.
+     * Code executed when passing compute as the first argument (command).
+     *
+     * @param psiServerApi psiServerApi object which performs the API client towards the server
+     * @return ProcessExecutionResult object, which provides some information on the outcome of the execution
+     */
     public ProcessExecutionResult runCompute(PsiServerApi psiServerApi) {
         System.out.println("PSI Client started. Running algorithm "+algorithm+" with keySize "+keySize);
         loadDatasetFromFile();
@@ -222,6 +227,13 @@ public class PsiClientCLI implements Runnable{
         return processExecutionResult;
     }
 
+    /**
+     * Returns a list of pairs of algorithms and key sizes (PsiAlgorithmParameterDTO) supported by the server for PSI calculations.
+     * Code executed when passing list as the first argument (command)
+     *
+     * @param psiServerApi psiServerApi object which performs the API client towards the server
+     * @return the number of psiAlgorithmParameter supported by the server
+     */
     public int runList(PsiServerApi psiServerApi){
         List<PsiAlgorithmParameter> psiAlgorithmParameterDTOList = psiServerApi.getPsiAlgorithmParameterList().getContent();
         if(psiAlgorithmParameterDTOList.size() == 0){

@@ -17,6 +17,11 @@ import java.util.Set;
 @SuppressWarnings("UnstableApiUsage")
 public class BloomFilterHelper {
 
+    /**
+     * Creates a BloomFilter object from its serialized representation
+     * @param bloomFilterByteArray array of bytes that represent the serialized Bloom Filter
+     * @return BloomFilter<CharSequence> object which can be used to filter the client dataset
+     */
     public static BloomFilter<CharSequence> getBloomFilterFromByteArray(byte[] bloomFilterByteArray){
         InputStream inputStream = new ByteArrayInputStream(bloomFilterByteArray);
         try {
@@ -26,6 +31,15 @@ public class BloomFilterHelper {
         }
     }
 
+    /**
+     * Filters the client dataset with the input Bloom Filter
+     *
+     * @param inputDataset the client dataset
+     * @param bloomFilter the Bloom Filter received from the server
+     * @return a filtered client dataset which only contains the entries that are likely to also be part of
+     * the server dataset. Due to Bloom Filter semantics, we are sure that all the entries of the client dataset
+     * which are not in the result, are also not part of the server dataset.
+     */
     public static Set<String> filterSet(Set<String> inputDataset, BloomFilter<CharSequence> bloomFilter){
         Set<String> resultSet = new HashSet<>();
         for(String s : inputDataset){

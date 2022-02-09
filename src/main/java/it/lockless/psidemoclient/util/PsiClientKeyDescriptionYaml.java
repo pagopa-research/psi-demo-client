@@ -3,8 +3,8 @@ package it.lockless.psidemoclient.util;
 import psi.client.PsiClientKeyDescription;
 
 /**
- * This class holds the clientKeyDescription object written as yaml file and can be considered
- * This class is decoupled from the ClientKeyDescription class of the psi-sdk to provide more flexibility
+ * This class holds the clientKeyDescription object written as a yaml file.
+ * This class is decoupled from the ClientKeyDescription class of the psi-sdk to provide more flexibility.
  */
 
 public class PsiClientKeyDescriptionYaml {
