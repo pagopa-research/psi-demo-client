@@ -9,42 +9,38 @@ import psi.client.PsiClientKeyDescription;
 
 public class PsiClientKeyDescriptionYaml {
 
-    private String clientPrivateKey;
-    private String serverPublicKey;
+    private String clientPrivateExponent;
+    private String serverPublicExponent;
     private String modulus;
-    private String generator;
 
-    private String ecClientPrivateKey;
-    private String ecServerPublicKey;
-    private String ecSpecName;
+    private String ecClientPrivateD;
+    private String ecServerPublicQ;
 
     public PsiClientKeyDescriptionYaml() {
     }
 
     public PsiClientKeyDescriptionYaml(PsiClientKeyDescription psiClientKeyDescription) {
-        this.clientPrivateKey = psiClientKeyDescription.getClientPrivateKey();
-        this.serverPublicKey = psiClientKeyDescription.getServerPublicKey();
+        this.clientPrivateExponent = psiClientKeyDescription.getClientPrivateExponent();
+        this.serverPublicExponent = psiClientKeyDescription.getServerPublicExponent();
         this.modulus = psiClientKeyDescription.getModulus();
-        this.generator = psiClientKeyDescription.getGenerator();
-        this.ecClientPrivateKey = psiClientKeyDescription.getEcClientPrivateKey();
-        this.ecServerPublicKey = psiClientKeyDescription.getEcServerPublicKey();
-        this.ecSpecName = psiClientKeyDescription.getEcSpecName();
+        this.ecClientPrivateD = psiClientKeyDescription.getEcClientPrivateD();
+        this.ecServerPublicQ = psiClientKeyDescription.getEcServerPublicQ();
     }
 
-    public String getClientPrivateKey() {
-        return clientPrivateKey;
+    public String getClientPrivateExponent() {
+        return clientPrivateExponent;
     }
 
-    public void setClientPrivateKey(String clientPrivateKey) {
-        this.clientPrivateKey = clientPrivateKey;
+    public void setClientPrivateExponent(String clientPrivateExponent) {
+        this.clientPrivateExponent = clientPrivateExponent;
     }
 
-    public String getServerPublicKey() {
-        return serverPublicKey;
+    public String getServerPublicExponent() {
+        return serverPublicExponent;
     }
 
-    public void setServerPublicKey(String serverPublicKey) {
-        this.serverPublicKey = serverPublicKey;
+    public void setServerPublicExponent(String serverPublicExponent) {
+        this.serverPublicExponent = serverPublicExponent;
     }
 
     public String getModulus() {
@@ -55,48 +51,30 @@ public class PsiClientKeyDescriptionYaml {
         this.modulus = modulus;
     }
 
-    public String getGenerator() {
-        return generator;
+    public String getEcClientPrivateD() {
+        return ecClientPrivateD;
     }
 
-    public void setGenerator(String generator) {
-        this.generator = generator;
+    public void setEcClientPrivateD(String ecClientPrivateD) {
+        this.ecClientPrivateD = ecClientPrivateD;
     }
 
-    public String getEcClientPrivateKey() {
-        return ecClientPrivateKey;
+    public String getEcServerPublicQ() {
+        return ecServerPublicQ;
     }
 
-    public void setEcClientPrivateKey(String ecClientPrivateKey) {
-        this.ecClientPrivateKey = ecClientPrivateKey;
-    }
-
-    public String getEcServerPublicKey() {
-        return ecServerPublicKey;
-    }
-
-    public void setEcServerPublicKey(String ecServerPublicKey) {
-        this.ecServerPublicKey = ecServerPublicKey;
-    }
-
-    public String getEcSpecName() {
-        return ecSpecName;
-    }
-
-    public void setEcSpecName(String ecSpecName) {
-        this.ecSpecName = ecSpecName;
+    public void setEcServerPublicQ(String ecServerPublicQ) {
+        this.ecServerPublicQ = ecServerPublicQ;
     }
 
     @Override
     public String toString() {
         return "PsiClientKeyDescriptionYaml{" +
-                "clientPrivateKey='" + clientPrivateKey + '\'' +
-                ", serverPublicKey='" + serverPublicKey + '\'' +
+                "clientPrivateExponent='" + clientPrivateExponent + '\'' +
+                ", serverPublicExponent='" + serverPublicExponent + '\'' +
                 ", modulus='" + modulus + '\'' +
-                ", generator='" + generator + '\'' +
-                ", ecClientPrivateKey='" + ecClientPrivateKey + '\'' +
-                ", ecServerPublicKey='" + ecServerPublicKey + '\'' +
-                ", ecSpecName='" + ecSpecName + '\'' +
+                ", ecClientPrivateD='" + ecClientPrivateD + '\'' +
+                ", ecServerPublicQ='" + ecServerPublicQ + '\'' +
                 '}';
     }
 }

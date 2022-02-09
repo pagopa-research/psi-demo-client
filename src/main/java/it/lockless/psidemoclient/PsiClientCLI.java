@@ -292,13 +292,11 @@ public class PsiClientCLI implements Runnable{
         System.out.println("Key description read from file "+keyDescriptionFile);
 
         return PsiClientKeyDescriptionFactory.createGenericPsiClientKeyDescription(
-                psiClientKeyDescriptionYaml.getClientPrivateKey(),
-                psiClientKeyDescriptionYaml.getServerPublicKey(),
+                psiClientKeyDescriptionYaml.getClientPrivateExponent(),
+                psiClientKeyDescriptionYaml.getServerPublicExponent(),
                 psiClientKeyDescriptionYaml.getModulus(),
-                psiClientKeyDescriptionYaml.getGenerator(),
-                psiClientKeyDescriptionYaml.getEcClientPrivateKey(),
-                psiClientKeyDescriptionYaml.getEcServerPublicKey(),
-                psiClientKeyDescriptionYaml.getEcSpecName());
+                psiClientKeyDescriptionYaml.getEcClientPrivateD(),
+                psiClientKeyDescriptionYaml.getEcServerPublicQ());
     }
 
     private void writeKeyDescriptionToFile(PsiClientKeyDescription psiClientKeyDescription, File outputYamlFile){
