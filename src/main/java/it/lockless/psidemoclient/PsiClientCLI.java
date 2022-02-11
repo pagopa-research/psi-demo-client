@@ -13,8 +13,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.*;
 import psi.PsiClientFactory;
 import psi.client.PsiClient;
-import psi.client.PsiClientKeyDescription;
-import psi.client.PsiClientKeyDescriptionFactory;
+import psi.PsiClientKeyDescription;
+import psi.PsiClientKeyDescriptionFactory;
 import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
@@ -42,13 +42,13 @@ java -jar psi-demo-client-1.0-jar-with-dependencies.jar [arguments]
 @Command(name = "psiClientCLI", mixinStandardHelpOptions = true, version = "psiClientCLI 1.0", description = "Demo implementation of a PSI client using the psi-sdk.")
 public class PsiClientCLI implements Runnable{
 
-    Set<String> clientDataset;
+    private Set<String> clientDataset;
 
     @CommandLine.Parameters(description = "Should either be list or compute.")
     private String command;
 
     @Spec
-    Model.CommandSpec spec;
+    private Model.CommandSpec spec;
 
     @Option(names = { "-url", "--serverUrl" }, paramLabel = "URL", required = true, description = "URL of the server offering the PSI server API")
     private String serverBaseUrl;
@@ -82,8 +82,6 @@ public class PsiClientCLI implements Runnable{
 
     @Option(names = { "-bf", "--bloomFilterMaxAge" }, paramLabel = "Integer", description = "If set, defines the max minutes since the Bloom Filter creation to consider it valid. If the server sends an older Bloom Filter, the Bloom Filter is not applied. If this parameter is not set, the Bloom Filter is not applied")
     private Integer bloomFilterMaxAge;
-
-    private PsiServerApi psiServerApi;
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new it.lockless.psidemoclient.PsiClientCLI()).execute(args);
@@ -236,7 +234,7 @@ public class PsiClientCLI implements Runnable{
      */
     public int runList(PsiServerApi psiServerApi){
         List<PsiAlgorithmParameter> psiAlgorithmParameterDTOList = psiServerApi.getPsiAlgorithmParameterList().getContent();
-        if(psiAlgorithmParameterDTOList.size() == 0){
+        if(psiAlgorithmParameterDTOList.isEmpty()){
             System.out.println("The server does not support any PSI algorithm");
             return -1;
         }else{
