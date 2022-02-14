@@ -2,12 +2,9 @@ package it.lockless.psidemoclient.util;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import psi.exception.CustomRuntimeException;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +13,9 @@ import java.util.Set;
 
 @SuppressWarnings("UnstableApiUsage")
 public class BloomFilterHelper {
+
+    private BloomFilterHelper() {
+    }
 
     /**
      * Creates a BloomFilter object from its serialized representation

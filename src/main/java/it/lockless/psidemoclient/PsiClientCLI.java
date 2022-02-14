@@ -5,6 +5,7 @@ import it.lockless.psidemoclient.client.PsiServerApi;
 import it.lockless.psidemoclient.dto.*;
 import it.lockless.psidemoclient.util.BloomFilterHelper;
 import it.lockless.psidemoclient.util.PsiClientKeyDescriptionYaml;
+import it.lockless.psidemoclient.util.PsiDemoClientRuntimeException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -199,7 +200,7 @@ public class PsiClientCLI implements Runnable{
         do{
             serverDatasetPageDTO = psiServerApi.getPsiServerSetPage(psiClientSessionDTO.getSessionId(), page++, size);
             psiClient.loadAndProcessServerDataset(serverDatasetPageDTO.getContent());
-        } while(!serverDatasetPageDTO.isLast());
+        } while(Boolean.FALSE.equals(serverDatasetPageDTO.getLast()));
 
         // Compute PSI and write the result on the output file
         Set<String> psiResult = psiClient.computePsi();
@@ -272,7 +273,7 @@ public class PsiClientCLI implements Runnable{
         try {
             Files.write(Paths.get(outputFile.getPath()), set);
         } catch (IOException e) {
-            throw new RuntimeException("Error writing the output file");
+            throw new PsiDemoClientRuntimeException("Error writing the output file");
         }
     }
 
@@ -283,7 +284,7 @@ public class PsiClientCLI implements Runnable{
         try {
             new URL(serverBaseUrl);
         } catch (MalformedURLException e) {
-            throw new RuntimeException("The input serverBaseUrl is not a valid URL");
+            throw new PsiDemoClientRuntimeException("The input serverBaseUrl is not a valid URL");
         }
     }
 

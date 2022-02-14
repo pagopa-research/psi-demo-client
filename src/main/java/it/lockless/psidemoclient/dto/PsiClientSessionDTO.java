@@ -14,6 +14,10 @@ public class PsiClientSessionDTO {
 
     private BloomFilterDTO bloomFilterDTO;
 
+    public PsiClientSessionDTO() {
+        // Constructor with no arguments is used by Jackson in serialization/deserialization
+    }
+
     public Long getSessionId() {
         return sessionId;
     }

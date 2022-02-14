@@ -7,6 +7,7 @@ public class PsiAlgorithmParameterDTO {
     private PsiAlgorithmParameter content;
 
     public PsiAlgorithmParameterDTO() {
+        // Constructor with no arguments is used by Jackson in serialization/deserialization
     }
 
     public PsiAlgorithmParameterDTO(PsiAlgorithmParameter content) {

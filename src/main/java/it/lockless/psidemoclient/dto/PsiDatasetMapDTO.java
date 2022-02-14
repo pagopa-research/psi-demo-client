@@ -7,6 +7,7 @@ public class PsiDatasetMapDTO {
     private Map<Long, String> content;
 
     public PsiDatasetMapDTO() {
+        // Constructor with no arguments is used by Jackson in serialization/deserialization
     }
 
     public PsiDatasetMapDTO(Map<Long, String> content) {

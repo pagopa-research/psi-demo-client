@@ -18,6 +18,10 @@ public class PsiServerDatasetPageDTO {
 
     private Set<String> content;
 
+    public PsiServerDatasetPageDTO() {
+        // Constructor with no arguments is used by Jackson in serialization/deserialization
+    }
+
     public Integer getPage() {
         return page;
     }
@@ -42,7 +46,7 @@ public class PsiServerDatasetPageDTO {
         this.entries = entries;
     }
 
-    public Boolean isLast() {
+    public Boolean getLast() {
         return last;
     }
 
@@ -64,10 +68,6 @@ public class PsiServerDatasetPageDTO {
 
     public void setTotalEntries(Integer totalEntries) {
         this.totalEntries = totalEntries;
-    }
-
-    public Boolean getLast() {
-        return last;
     }
 
     public Set<String> getContent() {

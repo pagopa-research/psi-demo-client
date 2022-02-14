@@ -5,6 +5,7 @@ import it.lockless.psidemoclient.dto.PsiClientSessionDTO;
 import it.lockless.psidemoclient.dto.PsiDatasetMapDTO;
 import it.lockless.psidemoclient.dto.PsiServerDatasetPageDTO;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class RunComputeTest {
+class RunComputeTest {
 
     PsiClientCLI psiClientCLI;
 
@@ -162,6 +163,7 @@ public class RunComputeTest {
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
     void runBsComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
+        Assumptions.assumeTrue(new RedisChecker(), "Redis is not available at localhost:6379. Skipping test");
         setupMock(PsiAlgorithm.BS, 2048);
         setupRedis();
 
@@ -177,6 +179,7 @@ public class RunComputeTest {
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
     void runDhComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
+        Assumptions.assumeTrue(new RedisChecker(), "Redis is not available at localhost:6379. Skipping test");
         setupMock(PsiAlgorithm.DH, 2048);
         setupRedis();
 
@@ -196,6 +199,7 @@ public class RunComputeTest {
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
     void runEcbsComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
+        Assumptions.assumeTrue(new RedisChecker(), "Redis is not available at localhost:6379. Skipping test");
         setupMock(PsiAlgorithm.ECBS, 256);
         setupRedis();
 
@@ -211,6 +215,7 @@ public class RunComputeTest {
     @Test
     @Tag("redis") // Expects a Redis server running at localhost:6379
     void runEcdhComputeCache() throws IllegalAccessException, UnsupportedKeySizeException {
+        Assumptions.assumeTrue(new RedisChecker(), "Redis is not available at localhost:6379. Skipping test");
         setupMock(PsiAlgorithm.ECDH, 256);
         setupRedis();
 

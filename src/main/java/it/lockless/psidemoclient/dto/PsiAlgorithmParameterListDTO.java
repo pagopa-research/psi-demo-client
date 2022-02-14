@@ -13,6 +13,7 @@ public class PsiAlgorithmParameterListDTO {
     }
 
     public PsiAlgorithmParameterListDTO() {
+        // Constructor with no arguments is used by Jackson in serialization/deserialization
     }
 
     public List<PsiAlgorithmParameter> getContent() {

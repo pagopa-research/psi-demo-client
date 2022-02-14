@@ -9,6 +9,7 @@ public class BloomFilterDTO {
     private Instant bloomFilterCreationDate;
 
     public BloomFilterDTO() {
+        // Constructor with no arguments is used by Jackson in serialization/deserialization
     }
 
     public byte[] getSerializedBloomFilter() {

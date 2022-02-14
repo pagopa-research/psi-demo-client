@@ -10,6 +10,8 @@ public class PsiServerApi {
 
     private final RestTemplate restTemplate;
 
+    private static String errorMessageRadix = "Status code: ";
+
     public PsiServerApi(String psiServerBaseUrl){
         this.psiServerBaseUrl = psiServerBaseUrl;
         this.restTemplate = new RestTemplate();
@@ -24,11 +26,11 @@ public class PsiServerApi {
         if(e instanceof HttpClientErrorException){
             HttpStatus httpStatus = ((HttpClientErrorException) e).getStatusCode();
             if(httpStatus.equals((HttpStatus.REQUEST_TIMEOUT)))
-                System.err.println("Status code: " + HttpStatus.REQUEST_TIMEOUT+
+                System.err.println(errorMessageRadix + HttpStatus.REQUEST_TIMEOUT+
                         ". The session has expired. You should start a new session to compute the Private Set Intersection");
-            else System.err.println("Status code: " + e.getMessage());
+            else System.err.println(errorMessageRadix + e.getMessage());
         } else if(e instanceof HttpServerErrorException){
-            System.err.println("Status code: " + e.getMessage());
+            System.err.println(errorMessageRadix + e.getMessage());
         }
         else if(e instanceof ResourceAccessException){
             System.err.println("Cannot connect to the server. Please verify that the url " + this.psiServerBaseUrl + " is correct");
