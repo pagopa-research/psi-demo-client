@@ -31,7 +31,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-
 /*
 Command to create an executable JAR:
 mvn clean compile assembly:single
@@ -60,10 +59,10 @@ public class PsiClientCLI implements Runnable{
     @Option(names = { "-o", "--output" }, paramLabel = "FILE", defaultValue = "out.txt", description = "Output file containing the result of the PSI")
     private File outputFile;
 
-    @Option(names = { "-a", "--algorithm" }, paramLabel = "String", defaultValue = "BS", description = "Algorithm used for the PSI computation. Should be complaint with the values provided by the list command")
+    @Option(names = { "-a", "--algorithm" }, paramLabel = "String", defaultValue = "BS", description = "Algorithm used for the PSI computation. Should be compliant with the values provided by the list command")
     private String algorithm;
 
-    @Option(names = { "-k", "--keysize" }, paramLabel = "Integer", defaultValue = "2048", description = "Key size used for the PSI computation. Should be complaint with the values provided by the list command")
+    @Option(names = { "-k", "--keysize" }, paramLabel = "Integer", defaultValue = "2048", description = "Key size used for the PSI computation. Should be compliant with the values provided by the list command")
     private int keySize;
 
     @Option(names = { "-key", "--keyDescription" }, paramLabel = "FILE", description = "Yaml file containing the key description for the specific algorithm")

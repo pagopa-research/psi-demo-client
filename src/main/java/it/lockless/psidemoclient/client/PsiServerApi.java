@@ -10,8 +10,6 @@ public class PsiServerApi {
 
     private final RestTemplate restTemplate;
 
-    private static String errorMessageRadix = "Status code: ";
-
     public PsiServerApi(String psiServerBaseUrl){
         this.psiServerBaseUrl = psiServerBaseUrl;
         this.restTemplate = new RestTemplate();
@@ -23,6 +21,7 @@ public class PsiServerApi {
      * @param e exception risen by the API call
      */
     private void handleRestClientException(RestClientException e){
+        String errorMessageRadix = "Status code: ";
         if(e instanceof HttpClientErrorException){
             HttpStatus httpStatus = ((HttpClientErrorException) e).getStatusCode();
             if(httpStatus.equals((HttpStatus.REQUEST_TIMEOUT)))

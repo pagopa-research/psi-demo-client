@@ -50,7 +50,6 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
      * @param key       key corresponding to the value to be stored.
      * @param value     value to be stored.
      */
-
     @Override
     public void put(String key, String value) {
         Jedis jedis = this.jedisPool.getResource();

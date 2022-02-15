@@ -1,7 +1,6 @@
 package it.lockless.psidemoclient;
 
 import it.lockless.psidemoclient.cache.RedisPsiCacheProvider;
-import psi.cache.PsiCacheProvider;
 
 import java.util.function.BooleanSupplier;
 
