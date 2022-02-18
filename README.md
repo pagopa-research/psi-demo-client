@@ -9,6 +9,10 @@ to implement an end-to-end PSI calculation. Given its instructional scope,
 this code is not designed to be used in production environments, if not as a 
 starting point for more complete implementations.
 
+This demo supports all the PSI algorithms (and key sizes) supported by the PSI-SDK library, namely,
+Blind-Signature PSI, Diffie-Hellman PSI, Blind-Signature PSI based on elliptic curves and Diffie-Hellman PSI based
+on elliptic curves. The comparison is outside the scope of this demo.
+
 ## Building and running the CLI
 The build process is based on Maven. As anticipated, this program depends on the 
 PSI-SDK library. If it is not available in a remote Maven server, the jar of the library can 
@@ -61,6 +65,10 @@ Given this approach, we provide to the CLI user a parameter to define the max ti
 the Bloom Filter creation such that it is considered. This allows the users to select the window of validity of the Bloom
 Filter based on the frequency of writes in the server dataset.
 
+Using a stale Bloom Filter of the server dataset (i.e., a Bloom Filter that does not reflect the 
+updated state of the dataset) for filtering the client dataset could lead to excluding from the result of the PSI 
+some items which were added to the server dataset after the Bloom Filter creation.
+
 ## Server communication
 Following the traditional client-server scheme, the client sends to the server 
 a request to start a new PSI session, which is represented by a session identifier, a PSI algorithm, a key size and set of keys 
@@ -79,7 +87,8 @@ We note that, in the context of this demo, the client does not require kind of a
 In actual implementations, some form of authentication should be introduced to only allow
 authorized users to create new sessions. 
 Moreover, the APIs that refer to a specific session should only be accessible by the client that requested 
-the creation of the session (e.g., by making the server generate and send to the client Pa session-specific key whenever a new session is created).
+the creation of the session (e.g., by making the server generate and send to the client a session-specific key 
+whenever a new session is created).
 
 ## Interaction with the PSI-SDK library
 To summarise how the client mixes API calls to the different methods offered by the PSI-SDK library, 
