@@ -14,12 +14,12 @@ The build process is based on Maven. As anticipated, this program depends on the
 PSI-SDK library. If it is not available in a remote Maven server, the jar of the library can 
 be generated locally by running the following command from the PSI-SDK root folder:
 
-    maven clean install
+    mvn clean install
 
 Once the PSI-SDK jar is available in either a remote ore local Maven repository, you can build an executable jar 
 by running the following command from the root folder of this repo:
     
-    maven clean compile assembly:single
+    mvn clean compile assembly:single
 
 To run the executable jar, which by default is generated in the target folder, run
 the following command from the root folder of this repo
