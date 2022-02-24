@@ -26,7 +26,7 @@ by running the following command from the root folder of this repo:
     mvn clean compile assembly:single
 
 To run the executable jar, which by default is generated in the target folder, run
-the following command from the root folder of this repo
+the following command from the root folder of this repo:
 
     java -jar target/psi-demo-client-1.0-jar-with-dependencies.jar [arguments]
 
@@ -104,7 +104,7 @@ However, the PSI-SDK also supports a pagination-style
 approach as the client can simply call the encryptClientDataset() method multiple times
 (even concurrently) for different portions of the client dataset. 
 Similarly, the client dataset can be sent in different pages by calling 
-the API **POST /psi/{sessionId/clientSet** multiple times (either subsequently or concurrently).
+the API **POST /psi/{sessionId}/clientSet** multiple times (either subsequently or concurrently).
 
 We note that the PSI-SDK natively supports parallelism and can be configured 
 to run encryption operations with the desired number of threads directly at the
