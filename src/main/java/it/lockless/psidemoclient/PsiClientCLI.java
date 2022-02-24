@@ -16,6 +16,7 @@ import psi.PsiClientFactory;
 import psi.client.PsiClient;
 import psi.PsiClientKeyDescription;
 import psi.PsiClientKeyDescriptionFactory;
+import psi.exception.InvalidPsiClientKeyDescriptionException;
 import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
@@ -262,8 +263,7 @@ public class PsiClientCLI implements Runnable{
                 clientDataset.add(line);
             }
         } catch (IOException e) {
-            System.err.println("Cannot parse the input dataset");
-            System.exit(1);
+            throw new CommandLine.ParameterException(spec.commandLine(), "Cannot parse the input dataset");
         }
         System.out.println(clientDataset.size()+ " entries loaded from dataset file");
     }
@@ -283,7 +283,7 @@ public class PsiClientCLI implements Runnable{
         try {
             new URL(serverBaseUrl);
         } catch (MalformedURLException e) {
-            throw new PsiDemoClientRuntimeException("The input serverBaseUrl is not a valid URL");
+            throw new CommandLine.ParameterException(spec.commandLine(), "The input serverBaseUrl is not a valid URL");
         }
     }
 
@@ -294,19 +294,22 @@ public class PsiClientCLI implements Runnable{
         try {
             inputStream = new FileInputStream(keyDescriptionFile);
         } catch (FileNotFoundException e) {
-            System.err.println("Cannot find the input key description file" +keyDescriptionFile.getPath());
-            System.exit(1);
+            throw new CommandLine.ParameterException(spec.commandLine(), "Cannot find the input key description file" +keyDescriptionFile.getPath());
         }
         Yaml yaml = new Yaml(new Constructor(PsiClientKeyDescriptionYaml.class));
         PsiClientKeyDescriptionYaml psiClientKeyDescriptionYaml = yaml.load(inputStream);
         System.out.println("Key description read from file "+keyDescriptionFile);
 
-        return PsiClientKeyDescriptionFactory.createGenericPsiClientKeyDescription(
-                psiClientKeyDescriptionYaml.getClientPrivateExponent(),
-                psiClientKeyDescriptionYaml.getServerPublicExponent(),
-                psiClientKeyDescriptionYaml.getModulus(),
-                psiClientKeyDescriptionYaml.getEcClientPrivateD(),
-                psiClientKeyDescriptionYaml.getEcServerPublicQ());
+        try {
+            return PsiClientKeyDescriptionFactory.createGenericPsiClientKeyDescription(
+                    psiClientKeyDescriptionYaml.getClientPrivateExponent(),
+                    psiClientKeyDescriptionYaml.getServerPublicExponent(),
+                    psiClientKeyDescriptionYaml.getModulus(),
+                    psiClientKeyDescriptionYaml.getEcClientPrivateD(),
+                    psiClientKeyDescriptionYaml.getEcServerPublicQ());
+        } catch (InvalidPsiClientKeyDescriptionException e){
+            throw new CommandLine.ParameterException(spec.commandLine(), "The input key description file is invalid");
+        }
     }
 
     private void writeKeyDescriptionToFile(PsiClientKeyDescription psiClientKeyDescription, File outputYamlFile){
@@ -316,8 +319,7 @@ public class PsiClientCLI implements Runnable{
         try {
             Files.write(outputYamlFile.toPath(), yamlString.getBytes());
         } catch (IOException e) {
-            System.err.println("Cannot write the output key description file "+outputYamlFile.getPath());
-            System.exit(1);
+            throw new CommandLine.ParameterException(spec.commandLine(), "Cannot write to the output key description file "+outputYamlFile.getPath());
         }
     }
 
