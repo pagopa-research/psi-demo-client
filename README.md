@@ -11,7 +11,7 @@ starting point for more complete implementations.
 
 This demo supports all the PSI algorithms (and key sizes) supported by the PSI-SDK library, namely,
 Blind-Signature PSI, Diffie-Hellman PSI, Blind-Signature PSI based on elliptic curves and Diffie-Hellman PSI based
-on elliptic curves. The comparison is outside the scope of this demo.
+on elliptic curves. Their comparison is outside the scope of this demo.
 
 ## Building and running the CLI
 The build process is based on Maven. As anticipated, this program depends on the 
@@ -20,7 +20,7 @@ be generated locally by running the following command from the PSI-SDK root fold
 
     mvn clean install
 
-Once the PSI-SDK jar is available in either a remote ore local Maven repository, you can build an executable jar 
+Once the PSI-SDK jar is available in either a remote or local Maven repository, build an executable jar 
 by running the following command from the root folder of this repo:
     
     mvn clean compile assembly:single
@@ -37,7 +37,7 @@ The PSI-SDK library offers a simple key-store interface that allows the
 users of the library to select their preferred caching system. In this demo, we provide
 an in-memory cache provider based on [Redis](https://github.com/redis/redis). 
 
-You can easily create  a local Redis server with Docker for testing purposes with the following command:
+The user can easily create a local Redis server with Docker for testing purposes with the following command:
 
     docker run --name redis -p 6379:6379 -d redis
 
@@ -56,28 +56,26 @@ false positives, it does not provide false negatives.
 Despite being outside the scope of the PSI-SDK, this demo also includes a
 Bloom Filter implementation (also implemented in the server repo) based on the 
 [Google Guava library](https://github.com/google/guava) to show how this data 
-structure could be used to reduce the execution time of the PSI computation.
+structure could be used to further reduce the execution time of the PSI computation.
 
-The Bloom Filter of the server dataset is provided by the server and queried by the client to filter out it own dataset before
+The Bloom Filter of the server dataset is provided by the server and is queried by the client to filter out its own dataset before
 running the more computationally expensive operations associated to the PSI calculation. The server implemented 
 in the Psi Server Demo repository updates the Bloom Filter of its dataset asynchronously every few minutes. 
 Given this approach, we provide to the CLI user a parameter to define the max time in minutes since 
 the Bloom Filter creation such that it is considered. This allows the users to select the window of validity of the Bloom
-Filter based on the frequency of writes in the server dataset.
-
-Using a stale Bloom Filter of the server dataset (i.e., a Bloom Filter that does not reflect the 
+Filter based on the frequency of writes in the server dataset. Using a stale Bloom Filter of the server dataset (i.e., a Bloom Filter that does not reflect the 
 updated state of the dataset) for filtering the client dataset could lead to excluding from the result of the PSI 
 some items which were added to the server dataset after the Bloom Filter creation.
 
 ## Server communication
 Following the traditional client-server scheme, the client sends to the server 
 a request to start a new PSI session, which is represented by a session identifier, a PSI algorithm, a key size and set of keys 
-(whose structure may depend on the specific algorithm). Moreover, the client 
+(whose structure may depend on the specific PSI algorithm). Moreover, the client 
 has the responsibility of calling the server APIs in the correct order to 
 complete the end-to-end PSI calculation.
 
-This application expects that the server offers the following APIs 
-(their server-side implementation is available in the PSI server demo repo:
+This client expects that the server offers the following APIs 
+(their server-side implementation is available in the PSI server demo repo):
  - **GET psi/parameters**: gets a list of pairs of PSI algorithms and key sizes supported by the server.
  - **POST /psi**: creates a new PSI session for the algorithm and key size passed in the body. Returns the session identifier and all the fields required to initialize the PSI-SDK client components.
  - **POST /psi/{sessionId}/clientSet**: sends to the server a client-side encryption of the client dataset.
@@ -87,7 +85,7 @@ We note that, in the context of this demo, the client does not require kind of a
 In actual implementations, some form of authentication should be introduced to only allow
 authorized users to create new sessions. 
 Moreover, the APIs that refer to a specific session should only be accessible by the client that requested 
-the creation of the session (e.g., by making the server generate and send to the client a session-specific key 
+its creation (e.g., by making the server generate and send to the client a session-specific key 
 whenever a new session is created).
 
 ## Interaction with the PSI-SDK library
@@ -106,7 +104,7 @@ However, the PSI-SDK also supports a pagination-style
 approach as the client can simply call the encryptClientDataset() method multiple times
 (even concurrently) for different portions of the client dataset. 
 Similarly, the client dataset can be sent in different pages by calling 
-the API POST /psi/{sessionId/clientSet multiple times (either subsequently or concurrently).
+the API **POST /psi/{sessionId/clientSet** multiple times (either subsequently or concurrently).
 
 We note that the PSI-SDK natively supports parallelism and can be configured 
 to run encryption operations with the desired number of threads directly at the
@@ -125,11 +123,11 @@ The list of supported parameters is the following:
 
 | Full | Shortened | Description | Required | Default |
 |---|---|---|---|---|
-| --serverUrl | -url | URL of the server offering the PSI server API | Yes |    -  |
+| --serverUrl | -url | URL of the server exposing the PSI server API | Yes |    -  |
 | --inputDataset | -i | File containing the client dataset. Each line of the file is interpreted as an entry of the dataset | Only for compute |    - |
 | --output | -o | Output file containing the result of the PSI | No | out.txt |
 | --algorithm | -a | Algorithm used for the PSI computation. Should be compliant with the values provided by the list command | No | BS |
-| --keysize | -k | Key size used for the PSI computation. Should be compliant with the values provided by the list command | No | 2048 |
+| --keysize | -k | Size of the keys used for the PSI computation. Should be compliant with the values provided by the list command | No | 2048 |
 | --keyDescriptionFile | -key | Yaml file containing the key description for the specific algorithm | No |    - |
 | --outputKeyDescriptionFile | -outkey | Output file on which the key description used by the algorithm is printed at the end of the execution | No | key.yaml |
 | --cache | -c | Defines whether the client-side PSI calculation should use the Redis cache | No | false |
